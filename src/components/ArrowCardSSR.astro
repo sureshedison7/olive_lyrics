@@ -1,0 +1,29 @@
+---
+const { lyricsTitle, discription, lyricsLink } = Astro.props;
+---
+
+<a
+  href={lyricsLink} data-astro-reload
+  class="group relative flex items-center gap-4 rounded-2xl border border-black/10 bg-white/90 px-5 py-4 transition-all duration-300 hover:bg-black/5 hover:text-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black dark:border-white/20 dark:bg-white/5 dark:hover:bg-white/10 dark:hover:text-white dark:focus-visible:ring-white"
+  data-astro-prefetch="hover"
+>
+  <div class="flex flex-col overflow-hidden">
+    <h3 class="text-lg font-medium leading-tight text-black truncate dark:text-white">
+      {lyricsTitle}
+    </h3>
+    <p class="mt-1 text-sm text-gray-600 dark:text-gray-300 truncate">
+      {discription}
+    </p>
+  </div>
+
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    class="ml-auto h-5 w-5 shrink-0 transform stroke-current stroke-2 transition-transform duration-300 ease-in-out group-hover:translate-x-1 group-focus-visible:translate-x-1"
+    aria-hidden="true"
+    fill="none"
+  >
+    <line x1="5" y1="12" x2="19" y2="12" />
+    <polyline points="12 5 19 12 12 19" />
+  </svg>
+</a>

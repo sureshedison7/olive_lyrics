@@ -1,0 +1,38 @@
+---
+interface Props {
+  class?: string;
+  maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | 'full';
+  padding?: 'none' | 'sm' | 'md' | 'lg';
+}
+
+const { 
+  class: className, 
+  maxWidth = 'sm', 
+  padding = 'md' 
+} = Astro.props;
+
+const maxWidthClasses = {
+  sm: 'max-w-[var(--breakpoint-sm)]',
+  md: 'max-w-[var(--breakpoint-md)]',
+  lg: 'max-w-[var(--breakpoint-lg)]',
+  xl: 'max-w-[var(--breakpoint-xl)]',
+  full: 'max-w-none',
+};
+
+const paddingClasses = {
+  none: 'px-0',
+  sm: 'px-3 sm:px-4',
+  md: 'px-4 sm:px-6',
+  lg: 'px-6 sm:px-8',
+};
+---
+
+<div class={`
+  mx-auto
+  w-full
+  ${maxWidthClasses[maxWidth]}
+  ${paddingClasses[padding]}
+  ${className || ''}
+`}>
+  <slot />
+</div>

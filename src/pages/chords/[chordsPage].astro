@@ -1,0 +1,612 @@
+---
+export const prerender = false;
+import Layout from "@layouts/Layout.astro";
+import Container from "@components/Container.astro";
+import FormattedDate from "@components/FormattedDate.astro";
+import { BLOG } from "@consts";
+import type { LyricsTypes } from "@types";
+
+const { chordsPage } = Astro.params;
+
+let lyricsArticle: LyricsTypes | null = null;
+let error: string | null = null;
+
+try {
+  const DB = Astro.locals.runtime.env.DB as D1Database;
+  const safeLyricPage = typeof chordsPage === "string" ? chordsPage : "";
+  const result = await DB.prepare("SELECT * FROM songs WHERE url = ?")
+    .bind(decodeURIComponent(safeLyricPage))
+    .first();
+
+  if (result) {
+    lyricsArticle = result as unknown as LyricsTypes;
+  }
+} catch (e) {
+  console.error("Error fetching lyrics:", e);
+  error = "Failed to load lyrics";
+}
+---
+
+<Layout
+  title={`${lyricsArticle?.title || "Lyrics"} - ${lyricsArticle?.artist || ""}`}
+  description={lyricsArticle?.description || BLOG.DESCRIPTION}
+>
+  <Container>
+    <!-- Tab Navigation -->
+    <div class="flex w-full bg-gray-100 rounded-lg p-1.5 border border-gray-200 shadow-sm dark:bg-gray-800 dark:border-gray-700 mb-6">
+      <a
+        href={"/lyrics/" + lyricsArticle?.url}
+        data-astro-reload
+        class="flex-1 flex items-center justify-center gap-2 py-3 px-4 text-center font-medium rounded-md transition-all duration-300 text-gray-600 hover:bg-white hover:text-amber-600 hover:shadow-sm hover:border border-transparent hover:border-amber-100 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-amber-400 dark:hover:border-amber-900"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-5 w-5"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"
+          ></path>
+        </svg>
+        Lyrics
+      </a>
+
+      <a
+        href={"/chords/" + lyricsArticle?.url}
+        data-astro-reload
+        class="flex-1 flex items-center justify-center gap-2 py-3 px-4 text-center font-medium rounded-md transition-all duration-300 bg-white text-indigo-600 shadow-sm border border-indigo-100 dark:bg-gray-700 dark:text-indigo-400 dark:border-indigo-900"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-5 w-5"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+          ></path>
+        </svg>
+        Chords
+      </a>
+    </div>
+
+    {
+      error ? (
+        <div
+          class="my-10 rounded-lg border border-red-200 bg-red-50/80 p-4 dark:border-red-800/50 dark:bg-red-900/20"
+        >
+          <h1 class="text-xl font-bold text-red-800 dark:text-red-200">
+            Error Loading Lyrics
+          </h1>
+          <p class="mt-2 text-red-600 dark:text-red-300">{error}</p>
+        </div>
+      ) : lyricsArticle ? (
+        <div class="animate my-8">
+          <!-- Song Header -->
+          <div class="mb-6 flex items-start gap-3">
+            <div>
+              <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
+                {lyricsArticle.title}
+              </h1>
+              {lyricsArticle.artist && (
+                <p class="mt-1 text-lg text-gray-600 dark:text-gray-300">
+                  By {lyricsArticle.artist}
+                </p>
+              )}
+            </div>
+          </div>
+
+          <!-- Controls Container -->
+          <div
+            class="flex flex-col sm:flex-row flex-wrap items-start sm:items-center gap-4 mb-6 p-3 bg-gray-50 rounded-lg dark:bg-gray-800/50 controls-container"
+          >
+            <!-- Font Size Controls -->
+            <div class="flex flex-col sm:flex-row items-start sm:items-center gap-1.5">
+              <span class="text-xs font-medium text-gray-700 dark:text-gray-300 mb-1 sm:mb-0">
+                Font:
+              </span>
+              <div class="flex gap-1">
+                <button
+                  id="font-decrease"
+                  class="p-1.5 text-gray-600 border border-gray-300 rounded-md shadow-sm dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                  title="Decrease font size"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-3.5 w-3.5"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M5 12h14"></path>
+                  </svg>
+                </button>
+                <button
+                  id="font-reset"
+                  class="px-2 py-0.5 text-xs font-medium text-gray-600 border border-gray-300 rounded-md shadow-sm dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                  title="Reset font size"
+                >
+                  Reset
+                </button>
+                <button
+                  id="font-increase"
+                  class="p-1.5 text-gray-600 border border-gray-300 rounded-md shadow-sm dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                  title="Increase font size"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-3.5 w-3.5"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M12 5v14M5 12h14"></path>
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <!-- Transpose Controls -->
+            <div class="flex flex-col sm:flex-row items-start sm:items-center gap-1.5">
+              <span class="text-xs font-medium text-gray-700 dark:text-gray-300 mb-1 sm:mb-0">
+                Transpose:
+              </span>
+              <div class="flex gap-1">
+                <button
+                  id="transpose-down"
+                  class="p-1.5 text-gray-600 border border-gray-300 rounded-md shadow-sm dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                  title="Transpose Down"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-3.5 w-3.5"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M6 9l6 6 6-6"></path>
+                  </svg>
+                </button>
+
+                <span
+                  id="transpose-value"
+                  class="px-2 py-2 text-xs font-medium text-gray-600 border border-gray-300 rounded-md shadow-sm dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                >0</span>
+
+                <button
+                  id="transpose-up"
+                  class="p-1.5 text-gray-600 border border-gray-300 rounded-md shadow-sm dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                  title="Transpose Up"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-3.5 w-3.5"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M18 15l-6-6-6 6"></path>
+                  </svg>
+                </button>
+
+                <button
+                  id="transpose-reset"
+                  class="px-2 py-0.5 text-xs font-medium text-gray-600 border border-gray-300 rounded-md shadow-sm dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                >
+                  Reset
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Lyrics Content -->
+          <div
+            id="lyrics-content"
+            class="lyrics-container mt-8"
+            data-chords={lyricsArticle?.chords || ''}
+          >
+            <pre id="processed-chords" class="chord-sheet"></pre>
+          </div>
+
+          {
+            lyricsArticle.pub_date && (
+              <div
+                class="mt-12 border-t border-gray-200 pt-6 text-sm text-gray-500 dark:border-gray-700 dark:text-gray-400"
+              >
+                <FormattedDate date={new Date(lyricsArticle.pub_date)} />
+              </div>
+            )
+          }
+        </div>
+      ) : (
+        <div class="animate my-10 p-6 text-center">
+          <div class="mb-4 text-indigo-500 dark:text-indigo-400">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="32"
+              height="32"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M9 18V5l12-2v13"></path>
+              <circle cx="6" cy="18" r="3"></circle>
+              <circle cx="18" cy="16" r="3"></circle>
+              <path d="M12 8v4"></path>
+              <path d="M12 8h.01"></path>
+            </svg>
+          </div>
+          <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
+            Lyrics Not Found
+          </h1>
+          <p class="mt-2 text-gray-600 dark:text-gray-400">
+            No lyrics found for: {decodeURIComponent(chordsPage || "")}
+          </p>
+        </div>
+      )
+    }
+  </Container>
+</Layout>
+
+<style is:global>
+  @import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Source+Code+Pro:wght@400;500&display=swap");
+
+  .lyrics-container {
+    font-family:
+      "Inter",
+      -apple-system,
+      BlinkMacSystemFont,
+      sans-serif;
+  }
+  
+  .chord-sheet {
+    font-size: 1.15rem;
+    font-family: "Source Code Pro", monospace;
+    white-space: pre-wrap; 
+    word-break: break-word;
+    color: #333;
+    background-color: #f9fafb;
+    border-radius: 8px;
+    padding: 1.5rem;
+    overflow-x: auto;
+    transition: font-size 0.2s ease;
+  }
+  
+  .dark .chord-sheet {
+    color: #e5e7eb;
+    background-color: #1f2937;
+  }
+
+  .chord-line {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .chord-word {
+    display: flex;
+    flex-direction: column;
+    white-space: nowrap;
+  }
+  
+  .chord-label {
+    color: #6366f1;
+    font-weight: 600;
+    font-size: 0.8em;
+  }
+  
+  .dark .chord-label {
+    color: #818cf8;
+  }
+
+  .lyric-word {
+    color: #333;
+  }
+  
+  .dark .lyric-word {
+    color: #e5e7eb;
+  }
+
+  .section-title {
+    font-family:
+      "Inter",
+      -apple-system,
+      BlinkMacSystemFont,
+      sans-serif;
+    font-weight: 600;
+    color: #7c3aed;
+    margin-top: 1.5rem;
+    margin-bottom: 0.5rem;
+    font-size: 1.25rem;
+    display: block;
+  }
+  
+  .dark .section-title {
+    color: #a78bfa;
+  }
+
+  @media (max-width: 640px) {
+    .chord-sheet {
+      font-size: 1.5rem;
+      padding: 1rem;
+      line-height: 1.5;
+    }
+    
+    .section-title {
+      font-size: 1.1rem;
+    }
+
+    .controls-container {
+      flex-direction: row !important;
+      gap: 0.75rem;
+      align-items: center;
+      flex-wrap: nowrap;
+      padding: 0.5rem;
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+
+    .controls-container .flex-col {
+      flex-direction: row;
+      gap: 0.5rem;
+      align-items: center;
+    }
+
+    .controls-container span {
+      font-size: 0.7rem;
+    }
+
+    .controls-container button {
+      padding: 0.25rem;
+      font-size: 0.7rem;
+      line-height: 1;
+      min-height: 1.5rem;
+      min-width: 1.5rem;
+    }
+
+    .controls-container svg {
+      height: 0.75rem;
+      width: 0.75rem;
+    }
+
+    #transpose-value {
+      min-width: 1.25rem;
+      padding: 0.25rem 0.5rem;
+      font-size: 0.7rem;
+      line-height: 1;
+    }
+  }
+</style>
+
+<script is:inline>
+  document.addEventListener("DOMContentLoaded", () => {
+    const lyricsContent = document.getElementById("lyrics-content");
+    const processedChordsElement = document.getElementById("processed-chords");
+    
+    if (!lyricsContent || !processedChordsElement) {
+      console.error("Required elements not found.");
+      return;
+    }
+
+    const rawChordSheet = lyricsContent.getAttribute('data-chords');
+    if (!rawChordSheet) {
+        processedChordsElement.textContent = "No chords found for this song.";
+        return;
+    }
+
+    const CHORD_NOTES_SHARP = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+    const CHORD_NOTES_FLAT = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'];
+
+    let currentTranspose = 0;
+    let currentMode = 'sharp';
+
+    const chordRegex = /\*([A-G](?:#|b)?(?:maj|min|m|M|add|sus|dim|aug)?[0-9]*(?:\/[A-G](?:#|b)?)?)\*/g;
+    
+    function transposeChord(chord, steps, mode) {
+      if (!chord || typeof steps !== 'number') return chord;
+      
+      const noteList = mode === 'sharp' ? CHORD_NOTES_SHARP : CHORD_NOTES_FLAT;
+      const rootMatch = chord.match(/^[A-G](#|b)?/);
+      if (!rootMatch) return chord;
+      
+      const root = rootMatch[0];
+      const suffix = chord.substring(root.length);
+      
+      let rootIndex = noteList.indexOf(root);
+      if (rootIndex === -1) return chord;
+      
+      let newIndex = (rootIndex + steps) % 12;
+      if (newIndex < 0) newIndex += 12;
+      
+      const newRoot = noteList[newIndex];
+      
+      const bassNoteMatch = suffix.match(/\/[A-G](#|b)?/);
+      if (bassNoteMatch) {
+          const bassNote = bassNoteMatch[0].substring(1);
+          let bassNoteIndex = noteList.indexOf(bassNote);
+          if (bassNoteIndex === -1) return newRoot + suffix;
+
+          const newBassIndex = (bassNoteIndex + steps) % 12;
+          const newBassNote = noteList[newBassIndex < 0 ? newBassIndex + 12 : newBassIndex];
+          
+          return newRoot + suffix.replace(bassNoteMatch[0], '/' + newBassNote);
+      }
+      
+      return newRoot + suffix;
+    }
+
+    function processAndDisplaySong(transposeSteps = 0, mode = 'sharp') {
+        if (!rawChordSheet) {
+            processedChordsElement.textContent = "No chords found for this song.";
+            return;
+        }
+
+        const lines = rawChordSheet.split('\n');
+        let htmlContent = '';
+        
+        for (let i = 0; i < lines.length; i++) {
+            let line = lines[i].trim();
+            
+            const isSectionTitle = line.startsWith('[') && line.endsWith(']');
+            
+            if (isSectionTitle) {
+                const title = line.substring(1, line.length - 1);
+                htmlContent += `<span class="section-title">${title}</span>\n`;
+            } else if (line) {
+                // Tokenize the line: find all chord positions and split lyrics around them
+                const tokens = [];
+                let lastIndex = 0;
+                let match;
+                
+                while ((match = chordRegex.exec(line)) !== null) {
+                    const chordStart = match.index;
+                    const chordEnd = chordRegex.lastIndex;
+                    const chord = match[1];
+                    
+                    if (chordStart > lastIndex) {
+                        const lyricSegment = line.substring(lastIndex, chordStart);
+                        if (lyricSegment.trim()) {
+                            tokens.push({ type: 'lyric', text: lyricSegment });
+                        }
+                    }
+                    
+                    tokens.push({ type: 'chord', text: transposeChord(chord, transposeSteps, mode) });
+                    lastIndex = chordEnd;
+                }
+                
+                if (lastIndex < line.length) {
+                    const lyricSegment = line.substring(lastIndex);
+                    if (lyricSegment.trim()) {
+                        tokens.push({ type: 'lyric', text: lyricSegment });
+                    }
+                }
+                
+                if (tokens.length === 0) {
+                    htmlContent += `<div class="chord-line"><span class="chord-word"><span class="chord-label">&nbsp;</span><span class="lyric-word">${line}</span></span></div>\n`;
+                    continue;
+                }
+                
+                let lineHtml = '<div class="chord-line">';
+                let pendingChord = null;
+                
+                for (let j = 0; j < tokens.length; j++) {
+                    const token = tokens[j];
+                    
+                    if (token.type === 'chord') {
+                        pendingChord = `<span class="chord-label">${token.text}</span>`;
+                    } else if (token.type === 'lyric' && token.text.trim()) {
+                        lineHtml += '<span class="chord-word">';
+                        lineHtml += pendingChord || '<span class="chord-label">&nbsp;</span>';
+                        lineHtml += `<span class="lyric-word">${token.text.trim()}</span>`;
+                        lineHtml += '</span>';
+                        pendingChord = null;
+                    }
+                }
+                
+                if (pendingChord) {
+                    lineHtml += `<span class="chord-word">${pendingChord}<span class="lyric-word">&nbsp;</span></span>`;
+                }
+                
+                lineHtml += '</div>';
+                htmlContent += lineHtml + '\n';
+            }
+        }
+        
+        processedChordsElement.innerHTML = htmlContent;
+    }
+
+    // --- Event Listeners for Controls ---
+    const increaseBtn = document.getElementById("font-increase");
+    const decreaseBtn = document.getElementById("font-decrease");
+    const resetBtn = document.getElementById("font-reset");
+    const transposeUpBtn = document.getElementById("transpose-up");
+    const transposeDownBtn = document.getElementById("transpose-down");
+    const transposeResetBtn = document.getElementById("transpose-reset");
+    const transposeValue = document.getElementById("transpose-value");
+
+    const initialFontSize = 1.15;
+    let currentFontSize = initialFontSize;
+    const sizeStep = 0.1;
+
+    function updateFontSize() {
+      processedChordsElement.style.fontSize = `${currentFontSize}rem`;
+    }
+
+    if (increaseBtn) {
+      increaseBtn.addEventListener("click", () => {
+        if (currentFontSize < 1.8) {
+          currentFontSize += sizeStep;
+          updateFontSize();
+        }
+      });
+    }
+
+    if (decreaseBtn) {
+      decreaseBtn.addEventListener("click", () => {
+        if (currentFontSize > 0.8) {
+          currentFontSize -= sizeStep;
+          updateFontSize();
+        }
+      });
+    }
+
+    if (resetBtn) {
+      resetBtn.addEventListener("click", () => {
+        currentFontSize = initialFontSize;
+        updateFontSize();
+      });
+    }
+    
+    if (transposeUpBtn) {
+      transposeUpBtn.addEventListener("click", () => {
+        currentTranspose += 1;
+        transposeValue.textContent = currentTranspose > 0 ? `+${currentTranspose}` : currentTranspose;
+        processAndDisplaySong(currentTranspose, currentMode);
+      });
+    }
+
+    if (transposeDownBtn) {
+      transposeDownBtn.addEventListener("click", () => {
+        currentTranspose -= 1;
+        transposeValue.textContent = currentTranspose > 0 ? `+${currentTranspose}` : currentTranspose;
+        processAndDisplaySong(currentTranspose, currentMode);
+      });
+    }
+
+    if (transposeResetBtn) {
+      transposeResetBtn.addEventListener("click", () => {
+        currentTranspose = 0;
+        transposeValue.textContent = currentTranspose;
+        processAndDisplaySong(currentTranspose, currentMode);
+      });
+    }
+    
+    // Initialize display
+    processAndDisplaySong(0);
+  });
+</script>

@@ -1,0 +1,21 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "my-doc",
+  "main": "./dist/_worker.js/index.js",
+  "compatibility_date": "2025-06-07",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": {
+    "binding": "ASSETS",
+    "directory": "./dist",
+  },
+  "observability": {
+    "enabled": true,
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "grace-db",
+      "database_id": "2f0c83b8-8d20-44f8-a7c1-69b23bb2fd9b",
+    },
+  ],
+}

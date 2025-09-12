@@ -1,0 +1,166 @@
+---
+// Astro Imports
+import Layout from "@layouts/Layout.astro";
+import Container from "@components/Container.astro";
+import ArrowCardSSR from "@components/ArrowCardSSR.astro";
+import Link from "@components/Link.astro";
+import { SITE, HOME, SOCIALS } from "@consts";
+import { getCollection } from "astro:content";
+import type { CollectionEntry } from "astro:content";
+import type { D1Database } from "@cloudflare/workers-types";
+
+// Content
+const blog = (await getCollection("blog"))
+  .filter((post) => !post.data.draft)
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
+  .slice(0, SITE.NUM_POSTS_ON_HOMEPAGE);
+
+const projects: CollectionEntry<"projects">[] = (
+  await getCollection("projects")
+)
+  .filter((project) => !project.data.draft)
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
+  .slice(0, SITE.NUM_PROJECTS_ON_HOMEPAGE);
+
+// D1 Lyrics Fetch
+export const prerender = false;
+interface Env { DB: D1Database; }
+
+let lyrics: any[] = [];
+try {
+  const DB = Astro.locals.runtime.env.DB as D1Database;
+  const { results } = await DB.prepare("SELECT * FROM songs").all();
+  lyrics = results;
+} catch (error) {
+  console.error("Error fetching lyrics:", error);
+}
+---
+
+<Layout title={HOME.TITLE} description={HOME.DESCRIPTION}>
+  <Container>
+    <!-- HERO SECTION -->
+    <section class="animate mb-16 text-center">
+      <h1 class="mb-4 text-5xl font-extrabold text-black dark:text-white">
+        Cross<span class="text-primary-600">Lyrics</span>
+      </h1>
+      <p class="mx-auto max-w-xl text-lg text-gray-600 dark:text-gray-300">
+        Discover lyrics and chords for your favorite songs — perfect for musicians, worship leaders, and music lovers.
+      </p>
+
+      <!-- Search -->
+      <div class="mx-auto mt-8 max-w-2xl">
+        <form action="/search" method="GET" class="relative">
+          <input
+            type="text"
+            name="q"
+            placeholder="Search for songs, artists or lyrics..."
+            class="w-full rounded-full border border-gray-300 px-6 py-3 shadow-sm focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+          />
+          <button type="submit" class="absolute right-2 top-1/2 -translate-y-1/2 bg-primary-600 p-2 rounded-full text-white hover:bg-primary-700">
+            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </button>
+        </form>
+      </div>
+    </section>
+
+    <!-- FEATURED SONG -->
+    {lyrics[0] && (
+      <section class="animate mb-12 rounded-xl bg-primary-50 p-6 dark:bg-primary-950">
+        <h2 class="text-lg font-bold text-primary-700 dark:text-primary-200">🎤 Featured Lyric</h2>
+        <ArrowCardSSR
+          lyricsTitle={lyrics[0].title}
+          discription={lyrics[0].description}
+          lyricsLink={`lyrics/${lyrics[0].url}`}
+        />
+      </section>
+    )}
+
+    <!-- LATEST LYRICS -->
+    <section class="animate space-y-6 mb-12">
+      <div class="flex items-center justify-between">
+        <h2 class="text-xl font-semibold text-black dark:text-white">🎶 Latest Lyrics</h2>
+        <Link href="/lyrics">See all lyrics →</Link>
+      </div>
+      <ul class="flex flex-col gap-4">
+        {
+          lyrics.slice(0, 5).map((lyric) => (
+            <li>
+              <ArrowCardSSR
+                lyricsTitle={lyric.title}
+                discription={lyric.description}
+                lyricsLink={`lyrics/${lyric.url}`}
+              />
+            </li>
+          ))
+        }
+      </ul>
+    </section>
+
+    <!-- LATEST CHORDS -->
+    <section class="animate space-y-6 mb-12">
+      <div class="flex items-center justify-between">
+        <h2 class="text-xl font-semibold text-black dark:text-white">🎸 Latest Chords</h2>
+        <Link href="/chords">See all chords →</Link>
+      </div>
+      <ul class="flex flex-col gap-4">
+        {
+          lyrics.slice(0, 5).map((lyric) => (
+            <li>
+              <ArrowCardSSR
+                lyricsTitle={lyric.title}
+                discription={lyric.description}
+                lyricsLink={`chords/${lyric.url}`}
+              />
+            </li>
+          ))
+        }
+      </ul>
+    </section>
+
+    <!-- CATEGORIES (static sample) -->
+    <section class="animate mb-12">
+      <h2 class="text-xl font-semibold mb-4 text-black dark:text-white">🎼 Browse by Category</h2>
+      <ul class="flex flex-wrap gap-3">
+        {["Worship", "Praise", "Christmas", "Gospel", "Tamil", "English"].map((cat) => (
+          <li>
+            <Link href={`/category/${cat.toLowerCase()}`} class="inline-block rounded-full bg-primary-100 px-4 py-1 text-sm font-medium text-primary-700 dark:bg-primary-900 dark:text-primary-200">
+              {cat}
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </section>
+
+    <!-- CONNECT SECTION -->
+    <section class="animate space-y-4 mb-16">
+      <h2 class="text-xl font-semibold text-black dark:text-white">🤝 Let's Connect</h2>
+      <p>If you'd like to say hi or ask something, feel free to reach out through social media or email.</p>
+      <ul class="flex flex-wrap gap-3">
+        {
+          SOCIALS.map((s) => (
+            <li>
+              <Link href={s.HREF} external aria-label={`${SITE.TITLE} on ${s.NAME}`}>
+                {s.NAME}
+              </Link>
+            </li>
+          ))
+        }
+        <li>
+          <Link href={`mailto:${SITE.EMAIL}`} aria-label="Email us">{SITE.EMAIL}</Link>
+        </li>
+      </ul>
+    </section>
+
+    <!-- NEWSLETTER (optional) -->
+    <section class="animate mb-16 rounded-lg bg-gray-50 p-6 dark:bg-gray-900">
+      <h2 class="text-xl font-semibold mb-2 text-black dark:text-white">📬 Subscribe to Our Newsletter</h2>
+      <p class="mb-4 text-sm text-gray-600 dark:text-gray-400">Get fresh lyrics and chord updates delivered to your inbox.</p>
+      <form method="POST" action="/subscribe" class="flex max-w-lg flex-wrap gap-2">
+        <input type="email" name="email" placeholder="Your email" required class="flex-1 rounded-md border px-4 py-2 dark:bg-black dark:border-gray-600" />
+        <button type="submit" class="rounded-md bg-primary-600 px-4 py-2 text-white hover:bg-primary-700">Subscribe</button>
+      </form>
+    </section>
+  </Container>
+</Layout>
