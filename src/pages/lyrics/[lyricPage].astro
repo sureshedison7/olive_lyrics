@@ -144,10 +144,12 @@ try {
 
           {/* Lyrics content with ID for JS */}
           <div id="lyrics-content" class="lyrics-container mt-8">
-            <div
+            <pre class="lyric-sheet">
+              <div
               set:html={lyricsArticle.lyrics}
               class="chord-sheet overflow-hidden text-ellipsis whitespace-pre-wrap"
             />
+            </pre>
           </div>
 
           {/* Footer */}
@@ -236,6 +238,24 @@ try {
 <style is:global>
   @import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Source+Code+Pro:wght@400;500&display=swap");
 
+  .lyric-sheet {
+    font-size: 1.15rem;
+    font-family: "Source Code Pro", monospace;
+    white-space: pre-wrap; 
+    word-break: break-word;
+    color: #333;
+    background-color: #f9fafb;
+    border-radius: 8px;
+    padding: 1.5rem;
+    overflow-x: auto;
+    transition: font-size 0.2s ease;
+  }
+  
+  .dark .lyric-sheet {
+    color: #e5e7eb;
+    background-color: #1f2937;
+  }
+  
   .lyrics-container {
     font-family:
       "Inter",

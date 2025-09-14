@@ -1,7 +1,7 @@
 import type { Metadata, Site, Socials } from "@types";
 
 export const SITE: Site = {
-  TITLE: "Cross Lyrics",
+  TITLE: "Olive Lyrics",
   DESCRIPTION: "Christian worship lyrics collection.",
   EMAIL: "sureshedison77@gmail.com",
   NUM_POSTS_ON_HOMEPAGE: 5,
