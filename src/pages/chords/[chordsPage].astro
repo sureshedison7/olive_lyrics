@@ -107,22 +107,22 @@ try {
 
           <!-- Controls Container -->
           <div
-            class="flex flex-col sm:flex-row flex-wrap items-start sm:items-center gap-4 mb-6 p-3 bg-gray-50 rounded-lg dark:bg-gray-800/50 controls-container"
+            class="flex flex-row sm:flex-row flex-nowrap items-start sm:items-center gap-4 mb-6 p-4 bg-gray-50 rounded-lg dark:bg-gray-800/50"
           >
             <!-- Font Size Controls -->
-            <div class="flex flex-col sm:flex-row items-start sm:items-center gap-1.5">
-              <span class="text-xs font-medium text-gray-700 dark:text-gray-300 mb-1 sm:mb-0">
-                Font:
+            <div class="flex justify-center flex-wrap flex-col sm:flex-row items-start sm:items-center gap-2">
+              <span class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 sm:mb-0">
+                Font Size:
               </span>
-              <div class="flex gap-1">
+              <div class="flex gap-2">
                 <button
                   id="font-decrease"
-                  class="p-1.5 text-gray-600 border border-gray-300 rounded-md shadow-sm dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                  class="p-2 text-gray-600 border border-gray-300 rounded-md shadow-sm dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
                   title="Decrease font size"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    class="h-3.5 w-3.5"
+                    class="h-4 w-4"
                     viewBox="0 0 24 24"
                     fill="none"
                     stroke="currentColor"
@@ -135,19 +135,19 @@ try {
                 </button>
                 <button
                   id="font-reset"
-                  class="px-2 py-0.5 text-xs font-medium text-gray-600 border border-gray-300 rounded-md shadow-sm dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                  class="px-3 py-1 text-sm font-medium text-gray-600 border border-gray-300 rounded-md shadow-sm dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
                   title="Reset font size"
                 >
                   Reset
                 </button>
                 <button
                   id="font-increase"
-                  class="p-1.5 text-gray-600 border border-gray-300 rounded-md shadow-sm dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                  class="p-2 text-gray-600 border border-gray-300 rounded-md shadow-sm dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
                   title="Increase font size"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    class="h-3.5 w-3.5"
+                    class="h-4 w-4"
                     viewBox="0 0 24 24"
                     fill="none"
                     stroke="currentColor"
@@ -160,21 +160,21 @@ try {
                 </button>
               </div>
             </div>
-
+            
             <!-- Transpose Controls -->
-            <div class="flex flex-col sm:flex-row items-start sm:items-center gap-1.5">
-              <span class="text-xs font-medium text-gray-700 dark:text-gray-300 mb-1 sm:mb-0">
+            <div class="flex justify-center flex-col sm:flex-row items-start sm:items-center gap-2">
+              <span class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 sm:mb-0">
                 Transpose:
               </span>
-              <div class="flex gap-1">
+              <div class="flex gap-2">
                 <button
                   id="transpose-down"
-                  class="p-1.5 text-gray-600 border border-gray-300 rounded-md shadow-sm dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                  class="p-2 text-gray-600 border border-gray-300 rounded-md shadow-sm dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
                   title="Transpose Down"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    class="h-3.5 w-3.5"
+                    class="h-4 w-4"
                     viewBox="0 0 24 24"
                     fill="none"
                     stroke="currentColor"
@@ -188,17 +188,18 @@ try {
 
                 <span
                   id="transpose-value"
-                  class="px-2 py-2 text-xs font-medium text-gray-600 border border-gray-300 rounded-md shadow-sm dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
-                >0</span>
+                  class="px-3 py-1 text-sm font-medium text-gray-700 dark:text-gray-300 border border-gray-300 rounded-md dark:border-gray-600 min-w-[2.5rem] text-center"
+                  >0</span
+                >
 
                 <button
                   id="transpose-up"
-                  class="p-1.5 text-gray-600 border border-gray-300 rounded-md shadow-sm dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                  class="p-2 text-gray-600 border border-gray-300 rounded-md shadow-sm dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
                   title="Transpose Up"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    class="h-3.5 w-3.5"
+                    class="h-4 w-4"
                     viewBox="0 0 24 24"
                     fill="none"
                     stroke="currentColor"
@@ -212,7 +213,7 @@ try {
 
                 <button
                   id="transpose-reset"
-                  class="px-2 py-0.5 text-xs font-medium text-gray-600 border border-gray-300 rounded-md shadow-sm dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                  class="px-3 py-1 text-sm font-medium text-gray-600 border border-gray-300 rounded-md shadow-sm dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
                 >
                   Reset
                 </button>
@@ -220,13 +221,13 @@ try {
             </div>
           </div>
 
-          <!-- Lyrics Content -->
+          <!-- Chords Content -->
           <div
             id="lyrics-content"
             class="lyrics-container mt-8"
             data-chords={lyricsArticle?.chords || ''}
           >
-            <pre id="processed-chords" class="chord-sheet"></pre>
+            <div id="processed-chords" class="chord-sheet"></div>
           </div>
 
           {
@@ -261,10 +262,10 @@ try {
             </svg>
           </div>
           <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
-            Lyrics Not Found
+            Chords Not Found
           </h1>
           <p class="mt-2 text-gray-600 dark:text-gray-400">
-            No lyrics found for: {decodeURIComponent(chordsPage || "")}
+            No chords found for: {decodeURIComponent(chordsPage || "")}
           </p>
         </div>
       )
@@ -276,11 +277,7 @@ try {
   @import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Source+Code+Pro:wght@400;500&display=swap");
 
   .lyrics-container {
-    font-family:
-      "Inter",
-      -apple-system,
-      BlinkMacSystemFont,
-      sans-serif;
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
   }
   
   .chord-sheet {
@@ -289,6 +286,7 @@ try {
     white-space: pre-wrap; 
     word-break: break-word;
     color: #333;
+    line-height: 1.8;
     background-color: #f9fafb;
     border-radius: 8px;
     padding: 1.5rem;
@@ -304,24 +302,52 @@ try {
   .chord-line {
     display: flex;
     flex-wrap: wrap;
-    align-items: center;
-    gap: 0.5rem;
+    align-items: flex-start;
+    margin-bottom: 0.5rem;
   }
 
   .chord-word {
     display: flex;
     flex-direction: column;
-    white-space: nowrap;
+    margin-right: 0.0rem;
   }
   
   .chord-label {
-    color: #6366f1;
-    font-weight: 600;
-    font-size: 0.8em;
+    vertical-align: text-bottom;
+    display: inline-block;
+    margin-bottom: 1.4em;
+    width: 0;
+    white-space: nowrap;
+    font-size: 80%;
+    font-weight: bold;
+    user-select: none;
+    position: relative; 
+    height: 2em;
+    top: 2.5em;
   }
   
   .dark .chord-label {
     color: #818cf8;
+  }
+
+  .chord-text {
+    display: block;
+    background-color: #e2e0ff;
+    position: absolute;
+    left: 0;
+    top: -1.3em;
+    padding: 0.1em;
+    padding-right: 0.3em;
+    padding-left: 0.3em;
+    border-radius: 0.3em;
+    line-height: 1.75em;
+    color: #3730a3;
+  }
+
+  .dark .chord-text {
+    background-color: #9d9d9d;
+    border: 1px solid #9d9d9d;
+    color: #060606;
   }
 
   .lyric-word {
@@ -333,11 +359,7 @@ try {
   }
 
   .section-title {
-    font-family:
-      "Inter",
-      -apple-system,
-      BlinkMacSystemFont,
-      sans-serif;
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
     font-weight: 600;
     color: #7c3aed;
     margin-top: 1.5rem;
@@ -352,53 +374,13 @@ try {
 
   @media (max-width: 640px) {
     .chord-sheet {
-      font-size: 1.5rem;
+      font-size: 1rem;
       padding: 1rem;
-      line-height: 1.5;
+      line-height: 1.6;
     }
     
     .section-title {
       font-size: 1.1rem;
-    }
-
-    .controls-container {
-      flex-direction: row !important;
-      gap: 0.75rem;
-      align-items: center;
-      flex-wrap: nowrap;
-      padding: 0.5rem;
-      overflow-x: auto;
-      white-space: nowrap;
-    }
-
-    .controls-container .flex-col {
-      flex-direction: row;
-      gap: 0.5rem;
-      align-items: center;
-    }
-
-    .controls-container span {
-      font-size: 0.7rem;
-    }
-
-    .controls-container button {
-      padding: 0.25rem;
-      font-size: 0.7rem;
-      line-height: 1;
-      min-height: 1.5rem;
-      min-width: 1.5rem;
-    }
-
-    .controls-container svg {
-      height: 0.75rem;
-      width: 0.75rem;
-    }
-
-    #transpose-value {
-      min-width: 1.25rem;
-      padding: 0.25rem 0.5rem;
-      font-size: 0.7rem;
-      line-height: 1;
     }
   }
 </style>
@@ -414,6 +396,8 @@ try {
     }
 
     const rawChordSheet = lyricsContent.getAttribute('data-chords');
+    console.log("Raw chord data:", rawChordSheet); // Debug line
+    
     if (!rawChordSheet) {
         processedChordsElement.textContent = "No chords found for this song.";
         return;
@@ -471,76 +455,68 @@ try {
         
         for (let i = 0; i < lines.length; i++) {
             let line = lines[i].trim();
+            if (!line) continue; // Skip empty lines
             
             const isSectionTitle = line.startsWith('[') && line.endsWith(']');
             
             if (isSectionTitle) {
                 const title = line.substring(1, line.length - 1);
-                htmlContent += `<span class="section-title">${title}</span>\n`;
-            } else if (line) {
-                // Tokenize the line: find all chord positions and split lyrics around them
-                const tokens = [];
-                let lastIndex = 0;
-                let match;
+                htmlContent += `<div class="section-title">${title}</div>`;
+            } else {
+                // Check if line has chords
+                chordRegex.lastIndex = 0;
+                const hasChords = chordRegex.test(line);
                 
-                while ((match = chordRegex.exec(line)) !== null) {
-                    const chordStart = match.index;
-                    const chordEnd = chordRegex.lastIndex;
-                    const chord = match[1];
+                if (!hasChords) {
+                    // No chords - display as plain text
+                    htmlContent += `<div class="chord-line"><span class="chord-word"><span class="chord-label">&nbsp;</span><span class="lyric-word">${line}</span></span></div>`;
+                } else {
+                    // Process line with chords
+                    chordRegex.lastIndex = 0;
+                    let lineHtml = '<div class="chord-line">';
+                    let lastIndex = 0;
+                    let match;
                     
-                    if (chordStart > lastIndex) {
-                        const lyricSegment = line.substring(lastIndex, chordStart);
-                        if (lyricSegment.trim()) {
-                            tokens.push({ type: 'lyric', text: lyricSegment });
+                    while ((match = chordRegex.exec(line)) !== null) {
+                        const chordStart = match.index;
+                        const chordEnd = chordRegex.lastIndex;
+                        const chord = match[1];
+                        
+                        // Text before this chord
+                        const textBefore = line.substring(lastIndex, chordStart);
+                        if (textBefore) {
+                            lineHtml += `<span class="chord-word"><span class="chord-label">&nbsp;</span><span class="lyric-word">${textBefore}</span></span>`;
                         }
+                        
+                        // Find next chord position or end of line
+                        let nextChordStart = line.length;
+                        const tempRegex = new RegExp(chordRegex.source, chordRegex.flags);
+                        tempRegex.lastIndex = chordEnd;
+                        const nextMatch = tempRegex.exec(line);
+                        if (nextMatch) {
+                            nextChordStart = nextMatch.index;
+                        }
+                        
+                        // Text after this chord
+                        const textAfter = line.substring(chordEnd, nextChordStart);
+                        const transposedChord = transposeChord(chord, transposeSteps, mode);
+                        
+                        lineHtml += `<span class="chord-word"><span class="chord-label"><div class="chord-text">${transposedChord}</div></span><span class="lyric-word">${textAfter}</span></span>`;
+                        
+                        lastIndex = nextChordStart;
                     }
                     
-                    tokens.push({ type: 'chord', text: transposeChord(chord, transposeSteps, mode) });
-                    lastIndex = chordEnd;
+                    lineHtml += '</div>';
+                    htmlContent += lineHtml;
                 }
-                
-                if (lastIndex < line.length) {
-                    const lyricSegment = line.substring(lastIndex);
-                    if (lyricSegment.trim()) {
-                        tokens.push({ type: 'lyric', text: lyricSegment });
-                    }
-                }
-                
-                if (tokens.length === 0) {
-                    htmlContent += `<div class="chord-line"><span class="chord-word"><span class="chord-label">&nbsp;</span><span class="lyric-word">${line}</span></span></div>\n`;
-                    continue;
-                }
-                
-                let lineHtml = '<div class="chord-line">';
-                let pendingChord = null;
-                
-                for (let j = 0; j < tokens.length; j++) {
-                    const token = tokens[j];
-                    
-                    if (token.type === 'chord') {
-                        pendingChord = `<span class="chord-label">${token.text}</span>`;
-                    } else if (token.type === 'lyric' && token.text.trim()) {
-                        lineHtml += '<span class="chord-word">';
-                        lineHtml += pendingChord || '<span class="chord-label">&nbsp;</span>';
-                        lineHtml += `<span class="lyric-word">${token.text.trim()}</span>`;
-                        lineHtml += '</span>';
-                        pendingChord = null;
-                    }
-                }
-                
-                if (pendingChord) {
-                    lineHtml += `<span class="chord-word">${pendingChord}<span class="lyric-word">&nbsp;</span></span>`;
-                }
-                
-                lineHtml += '</div>';
-                htmlContent += lineHtml + '\n';
             }
         }
         
+        console.log("Processed HTML:", htmlContent); // Debug line
         processedChordsElement.innerHTML = htmlContent;
     }
 
-    // --- Event Listeners for Controls ---
+    // Event Listeners for Controls
     const increaseBtn = document.getElementById("font-increase");
     const decreaseBtn = document.getElementById("font-decrease");
     const resetBtn = document.getElementById("font-reset");
