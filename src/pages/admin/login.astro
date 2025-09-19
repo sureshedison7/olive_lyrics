@@ -1,45 +1,48 @@
 ---
 import Layout from "@layouts/Layout.astro";
 import Container from "@components/Container.astro";
-import { compare } from 'bcryptjs';
+import { compare } from "bcryptjs";
 
 let message: string | null = null;
 let isLoggedIn = false;
 
-if (Astro.request.method === 'POST') {
+if (Astro.request.method === "POST") {
   const formData = await Astro.request.formData();
-  const username = formData.get('username')?.toString();
-  const password = formData.get('password')?.toString();
+  const username = formData.get("username")?.toString();
+  const password = formData.get("password")?.toString();
 
   if (username && password) {
     try {
-      const db = Astro.locals.runtime.env.DB as import('astro').AstroGlobal['locals']['runtime']['env']['DB'];
-      
+      const db = Astro.locals.runtime.env
+        .DB as import("astro").AstroGlobal["locals"]["runtime"]["env"]["DB"];
+
       // Look up the user by username
-      const { results } = await db.prepare('SELECT * FROM users WHERE user_name = ?')
+      const { results } = await db
+        .prepare("SELECT * FROM users WHERE user_name = ?")
         .bind(username)
         .all();
-      
+
       const user = results[0];
 
-      if (user && await compare(password, user.password)) {
+      if (user && typeof user.password === "string" && (await compare(password, user.password))) {
         // Successful login
-        message = '✅ Login successful!';
+        message = "✅ Login successful!";
         isLoggedIn = true;
-        
-        // Set a session cookie
-        Astro.response.headers.set('Set-Cookie', `session=logged_in; HttpOnly; Path=/; Max-Age=${60 * 60 * 24}`); // 1 day expiration
-        
-      } else {
-        message = '❌ Invalid username or password.';
-      }
 
+        // Set a session cookie
+        Astro.response.headers.set(
+          "Set-Cookie",
+          `session=logged_in; HttpOnly; Path=/; Max-Age=${60 * 60 * 24}`,
+        ); // 1 day expiration
+      } else {
+        message = "❌ Invalid username or password.";
+      }
     } catch (err: any) {
       console.error(err);
       message = `❌ An error occurred: ${err.message}`;
     }
   } else {
-    message = '❌ Please enter both username and password.';
+    message = "❌ Please enter both username and password.";
   }
 }
 ---
@@ -49,62 +52,88 @@ if (Astro.request.method === 'POST') {
   description="Login to the Christian Lyrics admin panel."
 >
   <!-- Include Flowbite CSS -->
-  <link rel="stylesheet" href="https://unpkg.com/flowbite@1.5.3/dist/flowbite.min.css" />
-  
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/flowbite@1.5.3/dist/flowbite.min.css"
+  />
+
   <Container>
     <div class="container mx-auto px-4 py-8">
-      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 max-w-sm mx-auto">
-        <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-6 text-center">Login</h1>
+      <div
+        class="mx-auto max-w-sm rounded-lg bg-white p-6 shadow-md dark:bg-gray-800"
+      >
+        <h1
+          class="mb-6 text-center text-3xl font-bold text-gray-900 dark:text-white"
+        >
+          Login
+        </h1>
 
-        {message && (
-          <div class={`p-4 mb-4 text-sm rounded-lg ${message.startsWith('✅') ? 'bg-green-50 text-green-800 dark:bg-green-800 dark:text-green-400' : 'bg-red-50 text-red-800 dark:bg-red-800 dark:text-red-400'}`} role="alert">
-            {message}
-          </div>
-        )}
-
-        {isLoggedIn ? (
-          <div class="flex justify-center">
-            <a 
-              href="/admin/upload"
-              class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 w-full text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+        {
+          message && (
+            <div
+              class={`mb-4 rounded-lg p-4 text-sm ${message.startsWith("✅") ? "bg-green-50 text-green-800 dark:bg-green-800 dark:text-green-400" : "bg-red-50 text-red-800 dark:bg-red-800 dark:text-red-400"}`}
+              role="alert"
             >
-              Go to Upload
-            </a>
-          </div>
-        ) : (
-          <form method="POST" class="space-y-6">
-            <div>
-              <label for="username" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Username</label>
-              <input 
-                type="text"
-                name="username" 
-                id="username" 
-                required 
-                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-400 dark:focus:border-blue-400"
-              />
+              {message}
             </div>
-            
-            <div>
-              <label for="password" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Password</label>
-              <input 
-                type="password" 
-                name="password" 
-                id="password" 
-                required 
-                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-400 dark:focus:border-blue-400"
-              />
-            </div>
-            
+          )
+        }
+
+        {
+          isLoggedIn ? (
             <div class="flex justify-center">
-              <button 
-                type="submit" 
-                class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 w-full dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+              <a
+                href="/admin/dashboard"
+                class="w-full rounded-lg bg-blue-700 px-5 py-2.5 text-center text-sm font-medium text-white hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
               >
-                Log In
-              </button>
+                Go to Dashboard
+              </a>
             </div>
-          </form>
-        )}
+          ) : (
+            <form method="POST" class="space-y-6">
+              <div>
+                <label
+                  for="username"
+                  class="mb-2 block text-sm font-medium text-gray-900 dark:text-white"
+                >
+                  Username
+                </label>
+                <input
+                  type="text"
+                  name="username"
+                  id="username"
+                  required
+                  class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 dark:focus:border-blue-400 dark:focus:ring-blue-400"
+                />
+              </div>
+
+              <div>
+                <label
+                  for="password"
+                  class="mb-2 block text-sm font-medium text-gray-900 dark:text-white"
+                >
+                  Password
+                </label>
+                <input
+                  type="password"
+                  name="password"
+                  id="password"
+                  required
+                  class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 dark:focus:border-blue-400 dark:focus:ring-blue-400"
+                />
+              </div>
+
+              <div class="flex justify-center">
+                <button
+                  type="submit"
+                  class="w-full rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+                >
+                  Log In
+                </button>
+              </div>
+            </form>
+          )
+        }
       </div>
     </div>
   </Container>

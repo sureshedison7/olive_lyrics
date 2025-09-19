@@ -1,51 +1,54 @@
 ---
 import Layout from "@layouts/Layout.astro";
 import Container from "@components/Container.astro";
-import { hash } from 'bcryptjs';
+import { hash } from "bcryptjs";
 
 let message: string | null = null;
 let formValues = {
-  username: '',
-  password: ''
+  username: "",
+  password: "",
 };
 
-if (Astro.request.method === 'POST') {
+if (Astro.request.method === "POST") {
   const formData = await Astro.request.formData();
-  const username = formData.get('username')?.toString();
-  const password = formData.get('password')?.toString();
+  const username = formData.get("username")?.toString();
+  const password = formData.get("password")?.toString();
 
-  formValues.username = username || '';
+  formValues.username = username || "";
 
   if (username && password) {
     try {
-      const db = Astro.locals.runtime.env.DB as import('astro').AstroGlobal['locals']['runtime']['env']['DB'];
-      
+      const db = Astro.locals.runtime.env
+        .DB as import("astro").AstroGlobal["locals"]["runtime"]["env"]["DB"];
+
       // Check if the username already exists
-      const { results } = await db.prepare('SELECT id FROM users WHERE user_name = ?')
+      const { results } = await db
+        .prepare("SELECT id FROM users WHERE user_name = ?")
         .bind(username)
         .all();
 
       if (results.length > 0) {
-        message = '❌ This username is already taken. Please choose another one.';
+        message =
+          "❌ This username is already taken. Please choose another one.";
       } else {
         // Hash the password before inserting it into the database
         const hashedPassword = await hash(password, 10);
-        
+
         // Insert the new user into the database
-        await db.prepare('INSERT INTO users (user_name, password) VALUES (?, ?)')
+        await db
+          .prepare("INSERT INTO users (user_name, password) VALUES (?, ?)")
           .bind(username, hashedPassword)
           .run();
-        
-        message = '✅ Account created successfully! You can now log in.';
-        formValues = { username: '', password: '' }; // Clear the form
-      }
 
+        message = "✅ Account created successfully! You can now log in.";
+        formValues = { username: "", password: "" }; // Clear the form
+      }
     } catch (err: any) {
       console.error(err);
       message = `❌ An error occurred: ${err.message}`;
     }
   } else {
-    message = '❌ Please enter a username and password.';
+    message = "❌ Please enter a username and password.";
   }
 }
 ---
@@ -55,55 +58,81 @@ if (Astro.request.method === 'POST') {
   description="Create a new account for the Christian Lyrics admin panel."
 >
   <!-- Include Flowbite CSS -->
-  <link rel="stylesheet" href="https://unpkg.com/flowbite@1.5.3/dist/flowbite.min.css" />
-  
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/flowbite@1.5.3/dist/flowbite.min.css"
+  />
+
   <Container>
     <div class="container mx-auto px-4 py-8">
-      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 max-w-sm mx-auto">
-        <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-6 text-center">Sign Up</h1>
+      <div
+        class="mx-auto max-w-sm rounded-lg bg-white p-6 shadow-md dark:bg-gray-800"
+      >
+        <h1
+          class="mb-6 text-center text-3xl font-bold text-gray-900 dark:text-white"
+        >
+          Sign Up
+        </h1>
 
-        {message && (
-          <div class={`p-4 mb-4 text-sm rounded-lg ${message.startsWith('✅') ? 'bg-green-50 text-green-800 dark:bg-green-800 dark:text-green-400' : 'bg-red-50 text-red-800 dark:bg-red-800 dark:text-red-400'}`} role="alert">
-            {message}
-          </div>
-        )}
+        {
+          message && (
+            <div
+              class={`mb-4 rounded-lg p-4 text-sm ${message.startsWith("✅") ? "bg-green-50 text-green-800 dark:bg-green-800 dark:text-green-400" : "bg-red-50 text-red-800 dark:bg-red-800 dark:text-red-400"}`}
+              role="alert"
+            >
+              {message}
+            </div>
+          )
+        }
 
         <form method="POST" class="space-y-6">
           <div>
-            <label for="username" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Username</label>
-            <input 
-              type="text" 
-              name="username" 
-              id="username" 
-              required 
+            <label
+              for="username"
+              class="mb-2 block text-sm font-medium text-gray-900 dark:text-white"
+              >Username</label
+            >
+            <input
+              type="text"
+              name="username"
+              id="username"
+              required
               value={formValues.username}
-              class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-400 dark:focus:border-blue-400"
+              class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 dark:focus:border-blue-400 dark:focus:ring-blue-400"
             />
           </div>
-          
+
           <div>
-            <label for="password" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Password</label>
-            <input 
-              type="password" 
-              name="password" 
-              id="password" 
-              required 
-              class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-400 dark:focus:border-blue-400"
+            <label
+              for="password"
+              class="mb-2 block text-sm font-medium text-gray-900 dark:text-white"
+              >Password</label
+            >
+            <input
+              type="password"
+              name="password"
+              id="password"
+              required
+              class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 dark:focus:border-blue-400 dark:focus:ring-blue-400"
             />
           </div>
-          
+
           <div class="flex justify-center">
-            <button 
-              type="submit" 
-              class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 w-full dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+            <button
+              type="submit"
+              class="w-full rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
             >
               Create Account
             </button>
           </div>
         </form>
 
-        <p class="text-center text-sm text-gray-500 dark:text-gray-400 mt-4">
-          Already have an account? <a href="/admin/login" class="text-blue-600 hover:underline dark:text-blue-500">Log in here</a>.
+        <p class="mt-4 text-center text-sm text-gray-500 dark:text-gray-400">
+          Already have an account? <a
+            href="/admin/login"
+            class="text-blue-600 hover:underline dark:text-blue-500"
+            >Log in here</a
+          >.
         </p>
       </div>
     </div>

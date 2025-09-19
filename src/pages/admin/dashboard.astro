@@ -1,0 +1,437 @@
+---
+import Navbar from "@components/Navbar.astro";
+import Layout from "@layouts/Layout.astro";
+
+// Fetch data from database
+const db = Astro.locals.runtime.env
+  .DB as import("astro").AstroGlobal["locals"]["runtime"]["env"]["DB"];
+
+const { results: songs } = await db
+  .prepare(`SELECT COUNT(*) as total FROM songs`)
+  .all<{ total: number }>();
+
+const { results: recentSongs } = await db
+  .prepare(`SELECT url, title, artist, pub_date FROM songs ORDER BY pub_date DESC LIMIT 5`)
+  .all<{ url: string; title: string; artist: string | null; pub_date: string | null }>();
+
+const isLoggedIn = Astro.cookies.get("session")?.value === "logged_in";
+
+if (!isLoggedIn) {
+  console.log(`[DEBUG] Redirecting to /admin/login due to missing session`);
+  return Astro.redirect("/admin/login");
+}
+---
+
+<Layout
+  title="Admin Dashboard - Christian Lyrics"
+  description="Admin dashboard for managing Christian worship lyrics"
+>
+
+<Navbar/>
+  <!-- Include Flowbite CSS -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/flowbite@1.5.3/dist/flowbite.min.css"
+  />
+
+  <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <!-- Content -->
+    <div class="p-4">
+      <div class="p-4 border-2 border-gray-200 border-dashed rounded-lg dark:border-gray-700 mt-14">
+        <!-- Header -->
+        <div class="flex items-center justify-between mb-6">
+          <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
+          <div class="flex items-center space-x-4">
+            <a
+              href="/admin/upload"
+              class="rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+            >
+              Go to Upload
+            </a>
+            <a
+              href="/admin/admin"
+              class="rounded-lg bg-gray-500 px-5 py-2.5 text-sm font-medium text-white hover:bg-gray-600 focus:ring-4 focus:ring-gray-300 dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-800"
+            >
+              Go to Admin
+            </a>
+            <button
+              id="theme-toggle"
+              type="button"
+              class="rounded-lg p-2.5 text-sm text-gray-500 hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 focus:outline-none dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-700"
+            >
+              <svg
+                id="theme-toggle-dark-icon"
+                class="hidden h-5 w-5"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"
+                ></path>
+              </svg>
+              <svg
+                id="theme-toggle-light-icon"
+                class="hidden h-5 w-5"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4.586 2.414a1 1 0 011.414 1.414l-.707.707a1 1 0 11-1.414-1.414l.707-.707zM16 10a1 1 0 011-1h1a1 1 0 110 2h-1a1 1 0 01-1-1zm-1.414 4.586a1 1 0 011.414 0l.707.707a1 1 0 01-1.414 1.414l-.707-.707a1 1 0 010-1.414zM10 16a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zm-4.586-1.414a1 1 0 010 1.414l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 0zM3 10a1 1 0 011-1h1a1 1 0 110 2H4a1 1 0 01-1-1zm1.414-4.586l.707-.707a1 1 0 011.414 1.414l-.707.707a1 1 0 01-1.414-1.414zM10 14a4 4 0 100-8 4 4 0 000 8z"
+                ></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 gap-4 mb-6 lg:grid-cols-1">
+          <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+            <div class="flex items-center">
+              <div class="p-3 rounded-full bg-blue-100 dark:bg-blue-900">
+                <svg
+                  class="w-6 h-6 text-blue-600 dark:text-blue-300"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"
+                    clip-rule="evenodd"
+                  ></path>
+                </svg>
+              </div>
+              <div class="ml-4">
+                <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Total Songs</p>
+                <p class="text-2xl font-semibold text-gray-900 dark:text-white">{songs[0]?.total || 0}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Songs Table with Search and Export -->
+        <div class="grid grid-cols-1 gap-4 mb-6">
+          <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+            <div class="flex flex-col sm:flex-row items-center justify-between mb-4">
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2 sm:mb-0">Recent Songs</h3>
+              <div class="flex items-center space-x-4 w-full sm:w-auto">
+                <input
+                  type="text"
+                  id="song-search"
+                  placeholder="Search by title or artist..."
+                  class="block w-full sm:w-64 rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+                />
+                <button
+                  id="export-csv"
+                  class="rounded-lg bg-green-700 px-4 py-2 text-sm font-medium text-white hover:bg-green-800 focus:ring-4 focus:ring-green-300 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800"
+                >
+                  Export CSV
+                </button>
+              </div>
+            </div>
+            <div class="overflow-x-auto min-w-full">
+              <div class="min-w-[600px]" id="songs-table">
+                <div class="flex items-center justify-between p-3 bg-gray-100 dark:bg-gray-700 rounded text-sm font-medium text-gray-900 dark:text-white">
+                  <button
+                    class="sort-btn flex-1 text-left"
+                    data-sort="title"
+                    data-order="asc"
+                  >
+                    Title
+                    <svg
+                      class="inline w-4 h-4 ml-1"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M19 9l-7 7-7-7"
+                      ></path>
+                    </svg>
+                  </button>
+                  <button
+                    class="sort-btn flex-1 text-left"
+                    data-sort="artist"
+                    data-order="asc"
+                  >
+                    Artist
+                    <svg
+                      class="inline w-4 h-4 ml-1"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M19 9l-7 7-7-7"
+                      ></path>
+                    </svg>
+                  </button>
+                  <button
+                    class="sort-btn flex-1 text-left"
+                    data-sort="pub_date"
+                    data-order="asc"
+                  >
+                    Publish Date
+                    <svg
+                      class="inline w-4 h-4 ml-1"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M19 9l-7 7-7-7"
+                      ></path>
+                    </svg>
+                  </button>
+                  <span class="flex-1 text-left">Actions</span>
+                </div>
+                {recentSongs.map((song) => (
+                  <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded song-row text-sm">
+                    <div class="flex-1 truncate">{song.title}</div>
+                    <div class="flex-1 truncate">{song.artist || 'Unknown Artist'}</div>
+                    <div class="flex-1 truncate">
+                      {song.pub_date ? new Date(song.pub_date).toLocaleDateString() : 'N/A'}
+                    </div>
+                    <button
+                      class="view-details-btn text-blue-600 hover:underline dark:text-blue-400 flex-1 text-left"
+                      data-song-url={song.url}
+                    >
+                      View Details
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Song Details Modal -->
+    <div id="song-modal" class="hidden fixed inset-0 z-50 overflow-auto bg-gray-500 bg-opacity-75">
+      <div class="relative p-4 w-full max-w-2xl mx-auto my-8">
+        <div class="relative bg-white rounded-lg shadow dark:bg-gray-800">
+          <div class="flex justify-between items-center p-5 border-b dark:border-gray-600">
+            <h3 class="text-xl font-semibold text-gray-900 dark:text-white">Song Details</h3>
+            <button
+              id="close-modal"
+              type="button"
+              class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center dark:hover:bg-gray-600 dark:hover:text-white"
+            >
+              <svg
+                class="w-5 h-5"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                  clip-rule="evenodd"
+                ></path>
+              </svg>
+            </button>
+          </div>
+          <div class="p-6 space-y-4" id="modal-content">
+            <p class="text-gray-900 dark:text-white">Loading...</p>
+          </div>
+          <div class="flex justify-end p-6 border-t dark:border-gray-600">
+            <a
+              id="edit-song-link"
+              href="#"
+              class="rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+            >
+              Edit Song
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Flowbite JS -->
+    <script src="https://unpkg.com/flowbite@1.5.3/dist/flowbite.min.js"></script>
+
+    <script>
+      // Dark mode toggle
+      const themeToggleBtn = document.getElementById("theme-toggle") as HTMLButtonElement | null;
+      const themeToggleDarkIcon = document.getElementById("theme-toggle-dark-icon") as HTMLElement | null;
+      const themeToggleLightIcon = document.getElementById("theme-toggle-light-icon") as HTMLElement | null;
+
+      if (themeToggleBtn && themeToggleDarkIcon && themeToggleLightIcon) {
+        const isDark = localStorage.getItem("theme") === "dark" ||
+          (!localStorage.getItem("theme") && window.matchMedia("(prefers-color-scheme: dark)").matches);
+
+        if (isDark) {
+          document.documentElement.classList.add("dark");
+          themeToggleLightIcon.classList.remove("hidden");
+        } else {
+          themeToggleDarkIcon.classList.remove("hidden");
+        }
+
+        themeToggleBtn.addEventListener("click", () => {
+          themeToggleDarkIcon.classList.toggle("hidden");
+          themeToggleLightIcon.classList.toggle("hidden");
+          document.documentElement.classList.toggle("dark");
+          localStorage.setItem("theme", document.documentElement.classList.contains("dark") ? "dark" : "light");
+        });
+      }
+
+      // Search functionality
+      const searchInput = document.getElementById("song-search") as HTMLInputElement | null;
+      const songRows = document.querySelectorAll(".song-row") as NodeListOf<HTMLElement>;
+      if (searchInput && songRows) {
+        searchInput.addEventListener("input", () => {
+          const query = searchInput.value.toLowerCase();
+          songRows.forEach(row => {
+            const title = row.children[0].textContent?.toLowerCase() || "";
+            const artist = row.children[1].textContent?.toLowerCase() || "";
+            row.style.display = title.includes(query) || artist.includes(query) ? "" : "none";
+          });
+        });
+      }
+
+      // Sorting functionality
+      const sortButtons = document.querySelectorAll(".sort-btn") as NodeListOf<HTMLButtonElement>;
+      const songsTable = document.getElementById("songs-table") as HTMLElement | null;
+      if (sortButtons && songsTable) {
+        sortButtons.forEach(button => {
+          button.addEventListener("click", () => {
+            const sortKey = button.dataset.sort as string;
+            const currentOrder = button.dataset.order as string;
+            const newOrder = currentOrder === "asc" ? "desc" : "asc";
+            button.dataset.order = newOrder;
+
+            // Update sort icon
+            const icon = button.querySelector("svg") as SVGSVGElement;
+            icon.style.transform = newOrder === "asc" ? "rotate(0deg)" : "rotate(180deg)";
+
+            // Sort rows
+            const rows = Array.from(songRows);
+            rows.sort((a, b) => {
+              let aValue = a.children[sortKey === "title" ? 0 : sortKey === "artist" ? 1 : 2].textContent || "";
+              let bValue = b.children[sortKey === "title" ? 0 : sortKey === "artist" ? 1 : 2].textContent || "";
+              if (sortKey === "pub_date") {
+                aValue = aValue === "N/A" ? "" : aValue;
+                bValue = bValue === "N/A" ? "" : bValue;
+                return newOrder === "asc"
+                  ? new Date(aValue).getTime() - new Date(bValue).getTime()
+                  : new Date(bValue).getTime() - new Date(aValue).getTime();
+              }
+              return newOrder === "asc"
+                ? aValue.localeCompare(bValue)
+                : bValue.localeCompare(aValue);
+            });
+
+            // Re-render sorted rows
+            rows.forEach(row => songsTable.appendChild(row));
+          });
+        });
+      }
+
+      // Export CSV functionality
+      const exportButton = document.getElementById("export-csv") as HTMLButtonElement | null;
+      if (exportButton) {
+        exportButton.addEventListener("click", () => {
+          const csv = ["Title,Artist,Publish Date"];
+          songRows.forEach(row => {
+            const title = row.children[0].textContent || "";
+            const artist = row.children[1].textContent || "";
+            const pubDate = row.children[2].textContent || "";
+            csv.push(`"${title.replace(/"/g, '""')}","${artist.replace(/"/g, '""')}","${pubDate}"`);
+          });
+          const blob = new Blob([csv.join("\n")], { type: "text/csv" });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = "songs_export.csv";
+          a.click();
+          URL.revokeObjectURL(url);
+        });
+      }
+
+      // Modal functionality
+      const viewButtons = document.querySelectorAll(".view-details-btn") as NodeListOf<HTMLButtonElement>;
+      const modal = document.getElementById("song-modal") as HTMLElement | null;
+      const modalContent = document.getElementById("modal-content") as HTMLElement | null;
+      const closeModalBtn = document.getElementById("close-modal") as HTMLButtonElement | null;
+      const editSongLink = document.getElementById("edit-song-link") as HTMLAnchorElement | null;
+
+      if (viewButtons && modal && modalContent && closeModalBtn && editSongLink) {
+        viewButtons.forEach(button => {
+          button.addEventListener("click", async () => {
+            const songUrl = button.dataset.songUrl;
+            if (!songUrl) {
+              modalContent.innerHTML = `<p class="text-red-800 dark:text-red-400">Error: No song URL provided</p>`;
+              modal.classList.remove("hidden");
+              return;
+            }
+
+            modalContent.innerHTML = "<p class='text-gray-900 dark:text-white'>Loading...</p>";
+            modal.classList.remove("hidden");
+
+            try {
+              const response = await fetch(`/api/song/${encodeURIComponent(songUrl)}`);
+              const data = await response.json() as {
+                title?: string;
+                artist?: string;
+                album?: string;
+                category?: string;
+                key?: string;
+                primary_language?: string;
+                secondary_languages?: string;
+                tags?: string;
+                pub_date?: string;
+                lyrics?: string;
+                chords?: string;
+                description?: string;
+                error?: string;
+              };
+              if (!response.ok) {
+                throw new Error(data.error || `HTTP ${response.status}: Failed to fetch song details`);
+              }
+              modalContent.innerHTML = `
+                <div class="space-y-2">
+                  <p class="text-gray-900 dark:text-white"><strong>Title:</strong> ${data.title || "N/A"}</p>
+                  <p class="text-gray-900 dark:text-white"><strong>Artist:</strong> ${data.artist || "Unknown Artist"}</p>
+                  <p class="text-gray-900 dark:text-white"><strong>Album:</strong> ${data.album || "N/A"}</p>
+                  <p class="text-gray-900 dark:text-white"><strong>Category:</strong> ${data.category || "N/A"}</p>
+                  <p class="text-gray-900 dark:text-white"><strong>Key:</strong> ${data.key || "N/A"}</p>
+                  <p class="text-gray-900 dark:text-white"><strong>Primary Language:</strong> ${data.primary_language || "N/A"}</p>
+                  <p class="text-gray-900 dark:text-white"><strong>Secondary Languages:</strong> ${data.secondary_languages || "N/A"}</p>
+                  <p class="text-gray-900 dark:text-white"><strong>Tags:</strong> ${data.tags || "N/A"}</p>
+                  <p class="text-gray-900 dark:text-white"><strong>Publish Date:</strong> ${data.pub_date ? new Date(data.pub_date).toLocaleDateString() : "N/A"}</p>
+                  <p class="text-gray-900 dark:text-white"><strong>Description:</strong><br>${data.description ? data.description.replace(/\n/g, "<br>") : "N/A"}</p>
+                </div>
+              `;
+              editSongLink.href = `/admin/edit/${encodeURIComponent(songUrl)}`;
+            } catch (error) {
+              
+              modalContent.innerHTML = `<p class="text-red-800 dark:text-red-400">Error: ${error instanceof Error ? error.message : "Failed to load song details"}</p>`;
+            }
+          });
+        });
+
+        closeModalBtn.addEventListener("click", () => {
+          modal.classList.add("hidden");
+        });
+
+        modal.addEventListener("click", (e) => {
+          if (e.target === modal) modal.classList.add("hidden");
+        });
+      }
+    </script>
+</Layout>

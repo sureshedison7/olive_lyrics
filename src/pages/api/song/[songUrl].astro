@@ -1,0 +1,23 @@
+---
+const { songUrl } = Astro.params;
+const db = Astro.locals.runtime.env.DB;
+
+if (!songUrl) {
+  return new Response(JSON.stringify({ error: "No song URL" }), { status: 400, headers: { "Content-Type": "application/json" } });
+}
+
+try {
+  const { results } = await db
+    .prepare(`SELECT * FROM songs WHERE url = ?`)
+    .bind(decodeURIComponent(songUrl))
+    .all();
+
+  if (!results[0]) {
+    return new Response(JSON.stringify({ error: "Song not found" }), { status: 404, headers: { "Content-Type": "application/json" } });
+  }
+
+  return new Response(JSON.stringify(results[0]), { status: 200, headers: { "Content-Type": "application/json" } });
+} catch (error) {
+  return new Response(JSON.stringify({ error: "Server error" }), { status: 500, headers: { "Content-Type": "application/json" } });
+}
+---

@@ -1,0 +1,46 @@
+---
+const method = Astro.request.method;
+const formData = method === "POST" ? await Astro.request.formData() : null;
+
+let message: string | null = null;
+
+if (method === "POST" && formData) {
+  const url = formData.get("url")?.toString();
+
+  if (!url) {
+    return new Response(JSON.stringify({ error: "URL is required" }), {
+      status: 400,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  try {
+    const db = Astro.locals.runtime.env
+      .DB as import("astro").AstroGlobal["locals"]["runtime"]["env"]["DB"];
+
+    const result = await db
+      .prepare(`DELETE FROM songs WHERE url = ?`)
+      .bind(url)
+      .run();
+
+    if (!result.success) {
+      return new Response(JSON.stringify({ error: "Song not found" }), {
+        status: 404,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    return Astro.redirect("/admin");
+  } catch (err: any) {
+    return new Response(JSON.stringify({ error: `Error deleting song: ${err.message}` }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+}
+
+return new Response(JSON.stringify({ error: "Method not allowed" }), {
+  status: 405,
+  headers: { "Content-Type": "application/json" },
+});
+---

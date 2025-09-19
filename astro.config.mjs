@@ -11,11 +11,10 @@ import react from "@astrojs/react";
 export default defineConfig({
   site: "https://astro-micro.vercel.app",
   integrations: [sitemap(), mdx(), react()],
-    vite: {
+  vite: {
     resolve: {
-      
       alias: import.meta.env.PROD && {
-        'react-dom/server': 'react-dom/server.edge',
+        "react-dom/server": "react-dom/server.edge",
       },
     },
   },
@@ -29,7 +28,7 @@ export default defineConfig({
       theme: "css-variables",
     },
   },
-  output: 'server',
+  output: "server",
   adapter: cloudflare({
     imageService: "cloudflare",
   }),

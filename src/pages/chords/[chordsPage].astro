@@ -217,6 +217,15 @@ try {
                 >
                   Reset
                 </button>
+
+                <!-- Sharp/Flat Toggle -->
+                 {/*<button
+                  id="toggle-mode"
+                  class="px-3 py-1 text-sm font-medium text-gray-600 border border-gray-300 rounded-md shadow-sm dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                  title="Toggle Sharp/Flat"
+                >
+                  <span id="mode-label">♭</span>
+                </button>*/}
               </div>
             </div>
           </div>
@@ -396,7 +405,7 @@ try {
     }
 
     const rawChordSheet = lyricsContent.getAttribute('data-chords');
-    console.log("Raw chord data:", rawChordSheet); // Debug line
+    console.log("Raw chord data:", rawChordSheet);
     
     if (!rawChordSheet) {
         processedChordsElement.textContent = "No chords found for this song.";
@@ -407,113 +416,151 @@ try {
     const CHORD_NOTES_FLAT = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'];
 
     let currentTranspose = 0;
-    let currentMode = 'sharp';
+    let currentMode = 'flat'; // Default to flat since input uses Ab, Eb, Db
 
-    const chordRegex = /\*([A-G](?:#|b)?(?:maj|min|m|M|add|sus|dim|aug)?[0-9]*(?:\/[A-G](?:#|b)?)?)\*/g;
+    // Updated regex to handle chords with extensions and slash chords
+    const chordRegex = /\*([A-G](?:#|b)?(?:maj|min|m|M|add|sus|dim|aug|7|maj7|min7|m7)?(?:\/[A-G](?:#|b)?(?:maj|min|m|M|7|maj7|min7|m7)?)?)\*/g;
     
+    function detectChordNotation(chord) {
+      return chord.includes('b') ? 'flat' : 'sharp';
+    }
+
     function transposeChord(chord, steps, mode) {
       if (!chord || typeof steps !== 'number') return chord;
       
       const noteList = mode === 'sharp' ? CHORD_NOTES_SHARP : CHORD_NOTES_FLAT;
-      const rootMatch = chord.match(/^[A-G](#|b)?/);
-      if (!rootMatch) return chord;
       
-      const root = rootMatch[0];
-      const suffix = chord.substring(root.length);
+      // Split chord into root and bass note (if slash chord)
+      const slashIndex = chord.indexOf('/');
+      let root, bass, suffix = '';
       
-      let rootIndex = noteList.indexOf(root);
-      if (rootIndex === -1) return chord;
+      if (slashIndex !== -1) {
+        root = chord.substring(0, slashIndex);
+        bass = chord.substring(slashIndex + 1);
+      } else {
+        root = chord;
+      }
       
-      let newIndex = (rootIndex + steps) % 12;
-      if (newIndex < 0) newIndex += 12;
+      // Extract root note and suffix
+      const rootMatch = root.match(/^[A-G](?:#|b)?/);
+      if (!rootMatch) {
+        console.warn(`Invalid root note in chord: ${chord}`);
+        return chord;
+      }
       
-      const newRoot = noteList[newIndex];
+      const rootNote = rootMatch[0];
+      suffix = root.substring(rootNote.length);
       
-      const bassNoteMatch = suffix.match(/\/[A-G](#|b)?/);
-      if (bassNoteMatch) {
-          const bassNote = bassNoteMatch[0].substring(1);
-          let bassNoteIndex = noteList.indexOf(bassNote);
-          if (bassNoteIndex === -1) return newRoot + suffix;
-
-          const newBassIndex = (bassNoteIndex + steps) % 12;
-          const newBassNote = noteList[newBassIndex < 0 ? newBassIndex + 12 : newBassIndex];
-          
-          return newRoot + suffix.replace(bassNoteMatch[0], '/' + newBassNote);
+      // Transpose root note
+      let rootIndex = noteList.indexOf(rootNote);
+      if (rootIndex === -1) {
+        console.warn(`Root note ${rootNote} not found in note list`);
+        return chord;
+      }
+      
+      let newRootIndex = (rootIndex + steps) % 12;
+      if (newRootIndex < 0) newRootIndex += 12;
+      const newRoot = noteList[newRootIndex];
+      
+      // Handle bass note for slash chords
+      if (bass) {
+        const bassMatch = bass.match(/^[A-G](?:#|b)?/);
+        if (!bassMatch) {
+          console.warn(`Invalid bass note in chord: ${chord}`);
+          return newRoot + suffix + '/' + bass;
+        }
+        
+        const bassNote = bassMatch[0];
+        const bassSuffix = bass.substring(bassNote.length);
+        
+        let bassIndex = noteList.indexOf(bassNote);
+        if (bassIndex === -1) {
+          console.warn(`Bass note ${bassNote} not found in note list`);
+          return newRoot + suffix + '/' + bass;
+        }
+        
+        let newBassIndex = (bassIndex + steps) % 12;
+        if (newBassIndex < 0) newBassIndex += 12;
+        const newBassNote = noteList[newBassIndex];
+        
+        return `${newRoot}${suffix}/${newBassNote}${bassSuffix}`;
       }
       
       return newRoot + suffix;
     }
 
-    function processAndDisplaySong(transposeSteps = 0, mode = 'sharp') {
-        if (!rawChordSheet) {
-            processedChordsElement.textContent = "No chords found for this song.";
-            return;
-        }
+    function processAndDisplaySong(transposeSteps = 0, mode = 'flat') {
+      if (!rawChordSheet) {
+        processedChordsElement.textContent = "No chords found for this song.";
+        return;
+      }
 
-        const lines = rawChordSheet.split('\n');
-        let htmlContent = '';
+      const lines = rawChordSheet.split('\n');
+      let htmlContent = '';
+      
+      for (let i = 0; i < lines.length; i++) {
+        let line = lines[i].trim();
+        if (!line) continue;
         
-        for (let i = 0; i < lines.length; i++) {
-            let line = lines[i].trim();
-            if (!line) continue; // Skip empty lines
+        const isSectionTitle = line.startsWith('[') && line.endsWith(']');
+        
+        if (isSectionTitle) {
+          const title = line.substring(1, line.length - 1);
+          htmlContent += `<div class="section-title">${title}</div>`;
+        } else {
+          chordRegex.lastIndex = 0;
+          const hasChords = chordRegex.test(line);
+          
+          if (!hasChords) {
+            htmlContent += `<div class="chord-line"><span class="chord-word"><span class="chord-label">&nbsp;</span><span class="lyric-word">${line}</span></span></div>`;
+          } else {
+            chordRegex.lastIndex = 0;
+            let lineHtml = '<div class="chord-line">';
+            let lastIndex = 0;
+            let match;
             
-            const isSectionTitle = line.startsWith('[') && line.endsWith(']');
-            
-            if (isSectionTitle) {
-                const title = line.substring(1, line.length - 1);
-                htmlContent += `<div class="section-title">${title}</div>`;
-            } else {
-                // Check if line has chords
-                chordRegex.lastIndex = 0;
-                const hasChords = chordRegex.test(line);
-                
-                if (!hasChords) {
-                    // No chords - display as plain text
-                    htmlContent += `<div class="chord-line"><span class="chord-word"><span class="chord-label">&nbsp;</span><span class="lyric-word">${line}</span></span></div>`;
-                } else {
-                    // Process line with chords
-                    chordRegex.lastIndex = 0;
-                    let lineHtml = '<div class="chord-line">';
-                    let lastIndex = 0;
-                    let match;
-                    
-                    while ((match = chordRegex.exec(line)) !== null) {
-                        const chordStart = match.index;
-                        const chordEnd = chordRegex.lastIndex;
-                        const chord = match[1];
-                        
-                        // Text before this chord
-                        const textBefore = line.substring(lastIndex, chordStart);
-                        if (textBefore) {
-                            lineHtml += `<span class="chord-word"><span class="chord-label">&nbsp;</span><span class="lyric-word">${textBefore}</span></span>`;
-                        }
-                        
-                        // Find next chord position or end of line
-                        let nextChordStart = line.length;
-                        const tempRegex = new RegExp(chordRegex.source, chordRegex.flags);
-                        tempRegex.lastIndex = chordEnd;
-                        const nextMatch = tempRegex.exec(line);
-                        if (nextMatch) {
-                            nextChordStart = nextMatch.index;
-                        }
-                        
-                        // Text after this chord
-                        const textAfter = line.substring(chordEnd, nextChordStart);
-                        const transposedChord = transposeChord(chord, transposeSteps, mode);
-                        
-                        lineHtml += `<span class="chord-word"><span class="chord-label"><div class="chord-text">${transposedChord}</div></span><span class="lyric-word">${textAfter}</span></span>`;
-                        
-                        lastIndex = nextChordStart;
-                    }
-                    
-                    lineHtml += '</div>';
-                    htmlContent += lineHtml;
-                }
+            while ((match = chordRegex.exec(line)) !== null) {
+              const chordStart = match.index;
+              const chordEnd = chordRegex.lastIndex;
+              const chord = match[1];
+              
+              const textBefore = line.substring(lastIndex, chordStart);
+              if (textBefore) {
+                lineHtml += `<span class="chord-word"><span class="chord-label">&nbsp;</span><span class="lyric-word">${textBefore}</span></span>`;
+              }
+              
+              let nextChordStart = line.length;
+              const tempRegex = new RegExp(chordRegex.source, chordRegex.flags);
+              tempRegex.lastIndex = chordEnd;
+              const nextMatch = tempRegex.exec(line);
+              if (nextMatch) {
+                nextChordStart = nextMatch.index;
+              }
+              
+              const textAfter = line.substring(chordEnd, nextChordStart);
+              const chordNotation = detectChordNotation(chord);
+              const effectiveMode = mode === 'auto' ? chordNotation : mode;
+              const transposedChord = transposeChord(chord, transposeSteps, effectiveMode);
+              
+              lineHtml += `<span class="chord-word"><span class="chord-label"><div class="chord-text">${transposedChord}</div></span><span class="lyric-word">${textAfter}</span></span>`;
+              
+              lastIndex = nextChordStart;
             }
+            
+            // Handle remaining text after last chord
+            if (lastIndex < line.length) {
+              const remainingText = line.substring(lastIndex);
+              lineHtml += `<span class="chord-word"><span class="chord-label">&nbsp;</span><span class="lyric-word">${remainingText}</span></span>`;
+            }
+            
+            lineHtml += '</div>';
+            htmlContent += lineHtml;
+          }
         }
-        
-        console.log("Processed HTML:", htmlContent); // Debug line
-        processedChordsElement.innerHTML = htmlContent;
+      }
+      
+      console.log("Processed HTML:", htmlContent);
+      processedChordsElement.innerHTML = htmlContent;
     }
 
     // Event Listeners for Controls
@@ -524,6 +571,8 @@ try {
     const transposeDownBtn = document.getElementById("transpose-down");
     const transposeResetBtn = document.getElementById("transpose-reset");
     const transposeValue = document.getElementById("transpose-value");
+    const toggleModeBtn = document.getElementById("toggle-mode");
+    const modeLabel = document.getElementById("mode-label");
 
     const initialFontSize = 1.15;
     let currentFontSize = initialFontSize;
@@ -561,7 +610,7 @@ try {
     if (transposeUpBtn) {
       transposeUpBtn.addEventListener("click", () => {
         currentTranspose += 1;
-        transposeValue.textContent = currentTranspose > 0 ? `+${currentTranspose}` : currentTranspose;
+        transposeValue.textContent = currentTranspose > 0 ? `+${currentTranspose}` : currentTranspose.toString();
         processAndDisplaySong(currentTranspose, currentMode);
       });
     }
@@ -569,7 +618,7 @@ try {
     if (transposeDownBtn) {
       transposeDownBtn.addEventListener("click", () => {
         currentTranspose -= 1;
-        transposeValue.textContent = currentTranspose > 0 ? `+${currentTranspose}` : currentTranspose;
+        transposeValue.textContent = currentTranspose > 0 ? `+${currentTranspose}` : currentTranspose.toString();
         processAndDisplaySong(currentTranspose, currentMode);
       });
     }
@@ -577,12 +626,21 @@ try {
     if (transposeResetBtn) {
       transposeResetBtn.addEventListener("click", () => {
         currentTranspose = 0;
-        transposeValue.textContent = currentTranspose;
+        transposeValue.textContent = currentTranspose.toString();
+        processAndDisplaySong(currentTranspose, currentMode);
+      });
+    }
+
+    if (toggleModeBtn && modeLabel) {
+      toggleModeBtn.addEventListener("click", () => {
+        currentMode = currentMode === 'sharp' ? 'flat' : 'sharp';
+        modeLabel.textContent = currentMode === 'sharp' ? '♯' : '♭';
+        console.log(`Mode switched to: ${currentMode}`);
         processAndDisplaySong(currentTranspose, currentMode);
       });
     }
     
     // Initialize display
-    processAndDisplaySong(0);
+    processAndDisplaySong(0, currentMode);
   });
 </script>

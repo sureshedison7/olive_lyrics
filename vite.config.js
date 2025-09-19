@@ -1,6 +1,6 @@
 // vite.config.js
-import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react'; // Make sure this import is present if you use React
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react"; // Make sure this import is present if you use React
 
 export default defineConfig({
   plugins: [
@@ -8,7 +8,7 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      'react-dom/server': 'react-dom/server.edge',
+      "react-dom/server": "react-dom/server.edge",
     },
   },
 });

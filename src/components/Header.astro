@@ -4,25 +4,42 @@ import Link from "@components/Link.astro";
 import { SITE } from "@consts";
 ---
 
-<header transition:persist class="border-b border-black/10 dark:border-white/10 bg-white/80 dark:bg-black/40 backdrop-blur-sm sticky top-0 z-50">
+<header
+  transition:persist
+  class="sticky top-0 z-50 border-b border-black/10 bg-white/80 backdrop-blur-sm dark:border-white/10 dark:bg-black/40"
+>
   <Container>
     <div class="flex flex-wrap items-center justify-between gap-y-3 py-3">
       <!-- Site Title -->
-      <Link href="/" underline={false} class="text-xl font-semibold tracking-tight text-black dark:text-white">
+      <Link
+        href="/"
+        underline={false}
+        class="text-xl font-semibold tracking-tight text-black dark:text-white"
+      >
         {SITE.TITLE}&nbsp;✝️
       </Link>
 
       <!-- Navigation -->
-      <nav class="flex items-center gap-3 text-sm text-gray-700 dark:text-gray-300">
-        <Link href="/lyrics" class="hover:text-black dark:hover:text-white transition-colors">Lyrics</Link>
+      <nav
+        class="flex items-center gap-3 text-sm text-gray-700 dark:text-gray-300"
+      >
+        <Link
+          href="/lyrics"
+          class="transition-colors hover:text-black dark:hover:text-white"
+          >Lyrics</Link
+        >
         <span class="opacity-50">/</span>
-        <Link href="/chords" class="hover:text-black dark:hover:text-white transition-colors">Chords</Link>
+        <Link
+          href="/chords"
+          class="transition-colors hover:text-black dark:hover:text-white"
+          >Chords</Link
+        >
 
         <!-- Search Button -->
         <button
           id="magnifying-glass"
           aria-label="Search"
-          class="ml-3 inline-flex items-center gap-1 rounded-md border border-black/10 bg-gray-100 px-3 py-1.5 text-xs text-gray-800 transition-all hover:bg-black/5 hover:text-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black dark:border-white/20 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-white/10 dark:hover:text-white dark:focus-visible:ring-white"
+          class="ml-3 inline-flex items-center gap-1 rounded-md border border-black/10 bg-gray-100 px-3 py-1.5 text-xs text-gray-800 transition-all hover:bg-black/5 hover:text-black focus-visible:ring-2 focus-visible:ring-black focus-visible:outline-none dark:border-white/20 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-white/10 dark:hover:text-white dark:focus-visible:ring-white"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -36,8 +53,8 @@ import { SITE } from "@consts";
             stroke-linejoin="round"
             class="stroke-current"
           >
-            <circle cx="7" cy="7" r="5" />
-            <line x1="11" y1="11" x2="15" y2="15" />
+            <circle cx="7" cy="7" r="5"></circle>
+            <line x1="11" y1="11" x2="15" y2="15"></line>
           </svg>
           Search
         </button>

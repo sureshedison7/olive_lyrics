@@ -1,9 +1,9 @@
 ---
 // src/pages/search.astro
-import Layout from '../layouts/Layout.astro';
+import Layout from "../layouts/Layout.astro";
 
 // Get search query from URL params
-const query = Astro.url.searchParams.get('q') || '';
+const query = Astro.url.searchParams.get("q") || "";
 type Lyric = {
   id: number;
   title: string;
@@ -25,12 +25,16 @@ let results: Lyric[] = [];
 
 if (query) {
   const db = Astro.locals.runtime.env.DB as D1Database;
-  const stmt = db.prepare(`
+  const stmt = db
+    .prepare(
+      `
     SELECT * FROM lyrics 
     WHERE title LIKE ? OR content LIKE ? OR discription LIKE ?
     ORDER BY published_at DESC
-  `).bind(`%${query}%`, `%${query}%`, `%${query}%`);
-  
+  `,
+    )
+    .bind(`%${query}%`, `%${query}%`, `%${query}%`);
+
   const allResults = (await stmt.all()).results.map((row) => ({
     id: Number(row.id),
     title: String(row.title),
@@ -39,21 +43,24 @@ if (query) {
     lurl: String(row.lurl),
     published_at: String(row.published_at),
   })) as Lyric[];
-  
-results = allResults.filter(lyric => {
-  const fieldsToCheck = [lyric.title, lyric.content, lyric.discription];
-  const matches = fieldsToCheck.filter(field => 
-    field.toLowerCase().includes(query.toLowerCase())
-  ).length;
-  return matches >= 2;
-});
+
+  results = allResults.filter((lyric) => {
+    const fieldsToCheck = [lyric.title, lyric.content, lyric.discription];
+    const matches = fieldsToCheck.filter((field) =>
+      field.toLowerCase().includes(query.toLowerCase()),
+    ).length;
+    return matches >= 2;
+  });
 }
 ---
 
-<Layout title="Search Lyrics"  description="Search for lyrics by title or content">
+<Layout
+  title="Search Lyrics"
+  description="Search for lyrics by title or content"
+>
   <main class="container mx-auto p-4">
-    <h1 class="text-2xl font-bold mb-6">Search Lyrics</h1>
-    
+    <h1 class="mb-6 text-2xl font-bold">Search Lyrics</h1>
+
     <form method="get" action="/search" class="mb-8">
       <div class="flex gap-2">
         <input
@@ -61,39 +68,51 @@ results = allResults.filter(lyric => {
           name="q"
           value={query}
           placeholder="Search for lyrics..."
-          class="flex-1 p-2 border rounded"
+          class="flex-1 rounded border p-2"
           autofocus
         />
-        <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+        <button
+          type="submit"
+          class="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
+        >
           Search
         </button>
       </div>
     </form>
 
-    {query && (
-      <div>
-        <h2 class="text-xl font-semibold mb-4">
-          {results.length} results for "{query}"
-        </h2>
+    {
+      query && (
+        <div>
+          <h2 class="mb-4 text-xl font-semibold">
+            {results.length} results for "{query}"
+          </h2>
 
-        {results.length > 0 ? (
-          <ul class="space-y-4">
-            {results.map((lyric) => (
-              <li class="border-b pb-4">
-                <a href={"lyrics/"+lyric.lurl} class="block hover:bg-gray-50 p-2 rounded">
-                  <h3 class="text-lg font-medium text-blue-600">{lyric.title}</h3>
-                  <p class="text-gray-600 line-clamp-2">{lyric.discription}</p>
-                  <time class="text-sm text-gray-500">
-                    {new Date(lyric.published_at).toLocaleDateString()}
-                  </time>
-                </a>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p class="text-gray-500">No results found.</p>
-        )}
-      </div>
-    )}
+          {results.length > 0 ? (
+            <ul class="space-y-4">
+              {results.map((lyric) => (
+                <li class="border-b pb-4">
+                  <a
+                    href={"lyrics/" + lyric.lurl}
+                    class="block rounded p-2 hover:bg-gray-50"
+                  >
+                    <h3 class="text-lg font-medium text-blue-600">
+                      {lyric.title}
+                    </h3>
+                    <p class="line-clamp-2 text-gray-600">
+                      {lyric.discription}
+                    </p>
+                    <time class="text-sm text-gray-500">
+                      {new Date(lyric.published_at).toLocaleDateString()}
+                    </time>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p class="text-gray-500">No results found.</p>
+          )}
+        </div>
+      )
+    }
   </main>
 </Layout>

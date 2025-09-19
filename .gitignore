@@ -25,10 +25,3 @@ pnpm-debug.log*
 
 .wrangler/state/**/*.sqlite*
 .wrangler/state/**/*.wal
-
-# zip file
-micro.zip
-
-datafile.txt
-
-Old Version wev.zip

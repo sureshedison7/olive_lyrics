@@ -1,0 +1,428 @@
+---
+import Layout from "@layouts/Layout.astro";
+import Navbar from "@components/Navbar.astro";
+
+// Define the LyricsTypes interface for type safety
+interface LyricsTypes {
+  url: string;
+  title: string;
+  lyrics: string | null;
+  chords: string | null;
+  description: string | null;
+  album: string | null;
+  artist: string | null;
+  category: string | null;
+  pub_date: string | null;
+  key: string | null;
+  tags: string | null;
+  primary_language: string | null;
+  secondary_languages: string | null;
+}
+
+// Explicitly type Astro.params
+const { songId } = Astro.params as { songId?: string };
+
+const isLoggedIn = Astro.cookies.get("session")?.value === "logged_in";
+
+if (!isLoggedIn) {
+  console.log(`[DEBUG] Redirecting to /admin/login due to missing session`);
+  return Astro.redirect("/admin/login");
+}
+
+// Type the database connection
+const db = Astro.locals.runtime.env.DB as import("astro").AstroGlobal["locals"]["runtime"]["env"]["DB"];
+
+let song: LyricsTypes | null = null;
+let errorMessage: string | null = null;
+
+try {
+  if (!songId || songId === "undefined") {
+    errorMessage = "No song ID provided in the request";
+  } else {
+    const decodedSongId = decodeURIComponent(songId);
+    const { results } = await db
+      .prepare(`SELECT * FROM songs WHERE url = ?`)
+      .bind(decodedSongId)
+      .all<LyricsTypes>();
+    song = results[0] || null;
+    if (!song) {
+      errorMessage = `Song with URL "${decodedSongId}" not found in database`;
+    } else {
+      console.log(`[DEBUG] Found song: ${song.title} (URL: ${song.url})`);
+    }
+  }
+} catch (err: unknown) {
+  errorMessage = `Database error: ${err instanceof Error ? err.message : String(err)}`;
+  console.log(`[DEBUG] Database error: ${err instanceof Error ? err.message : String(err)}`);
+}
+
+const method = Astro.request.method;
+const formData = method === "POST" && song ? await Astro.request.formData() : null;
+
+let message: string | null = null;
+
+if (method === "POST" && formData && song) {
+  const title = formData.get("title")?.toString() || "";
+  const generatedUrl = title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+
+  const updatedSong: LyricsTypes = {
+    url: generatedUrl,
+    title: title,
+    lyrics: formData.get("lyrics")?.toString() || null,
+    chords: formData.get("chords")?.toString() || null,
+    description: formData.get("description")?.toString() || null,
+    album: formData.get("album")?.toString() || null,
+    artist: formData.get("artist")?.toString() || null,
+    category: formData.get("category")?.toString() || null,
+    pub_date: formData.get("pub_date")?.toString() || null,
+    key: formData.get("key")?.toString() || null,
+    tags: formData.get("tags")?.toString() || null,
+    primary_language: formData.get("primary_language")?.toString() || null,
+    secondary_languages: formData.get("secondary_languages")
+      ? Array.from(formData.getAll("secondary_languages")).map(String).join(",")
+      : null,
+  };
+
+  try {
+    const result = await db
+      .prepare(
+        `
+        UPDATE songs SET
+          url = ?, title = ?, lyrics = ?, chords = ?, description = ?, album = ?,
+          artist = ?, category = ?, pub_date = ?, key = ?, tags = ?,
+          primary_language = ?, secondary_languages = ?
+        WHERE url = ?
+      `
+      )
+      .bind(
+        updatedSong.url,
+        updatedSong.title,
+        updatedSong.lyrics,
+        updatedSong.chords,
+        updatedSong.description,
+        updatedSong.album,
+        updatedSong.artist,
+        updatedSong.category,
+        updatedSong.pub_date,
+        updatedSong.key,
+        updatedSong.tags,
+        updatedSong.primary_language,
+        updatedSong.secondary_languages,
+        decodeURIComponent(songId ?? "")
+      )
+      .run();
+
+    if (!result.success) {
+      message = "❌ No changes made to the song";
+    } else {
+      message = "✅ Song updated successfully!";
+      song = updatedSong;
+      console.log(`[DEBUG] Song updated successfully: ${song.title} (New URL: ${song.url})`);
+      if (updatedSong.url !== decodeURIComponent(songId ?? "")) {
+        return Astro.redirect(`/admin/edit/${encodeURIComponent(updatedSong.url)}`);
+      }
+    }
+  } catch (err: unknown) {
+    message = `❌ Error updating song: ${err instanceof Error ? err.message : String(err)}`;
+    console.log(`[DEBUG] Error updating song: ${err instanceof Error ? err.message : String(err)}`);
+  }
+}
+
+const musicalKeys = [
+  "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B",
+  "Cm", "C#m", "Dm", "D#m", "Em", "Fm", "F#m", "Gm", "G#m", "Am", "A#m", "Bm"
+] as const;
+
+const indianLanguages = ["English", "Telugu", "Tamil", "Malayalam", "Kannada"] as const;
+---
+
+<Layout
+  title={song ? `Edit Song: ${song.title}` : "Song Not Found"}
+  description="Edit a song in the Christian Lyrics database"
+>
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/flowbite@1.5.3/dist/flowbite.min.css"
+  />
+
+  <Navbar />
+
+  <div class="container mx-auto px-4 py-8">
+    <div class="rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
+      {
+        errorMessage ? (
+          <div class="mb-4 rounded-lg bg-red-50 p-4 text-sm text-red-800 dark:bg-red-800 dark:text-red-400" role="alert">
+            <h2 class="text-lg font-bold">Error</h2>
+            <p>{errorMessage}</p>
+            <div class="mt-4">
+              <a
+                href="/admin/admin"
+                class="rounded-lg bg-gray-500 px-5 py-2.5 text-sm font-medium text-white hover:bg-gray-600 focus:ring-4 focus:ring-gray-300 dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-800"
+              >
+                Back to Admin Panel
+              </a>
+            </div>
+          </div>
+        ) : song ? (
+          <>
+            <h2
+              class="mb-6 text-center text-2xl font-bold text-gray-900 dark:text-white"
+            >
+              Edit Song: {song.title}
+            </h2>
+
+            {
+              message && (
+                <div
+                  class={`mb-4 rounded-lg p-4 text-sm ${message.startsWith("✅") ? "bg-green-50 text-green-800 dark:bg-green-800 dark:text-green-400" : "bg-red-50 text-red-800 dark:bg-red-800 dark:text-red-400"}`}
+                  role="alert"
+                >
+                  {message}
+                </div>
+              )
+            }
+
+            <form method="POST" class="space-y-6">
+              <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+                <div class="space-y-6">
+                  <div>
+                    <label
+                      for="url"
+                      class="mb-2 block text-sm font-medium text-gray-900 dark:text-white"
+                    >URL (auto-generated)</label>
+                    <input
+                      type="text"
+                      name="url"
+                      id="url"
+                      disabled
+                      value={song.url}
+                      class="block w-full cursor-not-allowed rounded-lg border border-gray-300 bg-gray-100 p-2.5 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-400"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      for="title"
+                      class="mb-2 block text-sm font-medium text-gray-900 dark:text-white"
+                    >Title*</label>
+                    <input
+                      type="text"
+                      name="title"
+                      id="title"
+                      required
+                      value={song.title}
+                      class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      for="artist"
+                      class="mb-2 block text-sm font-medium text-gray-900 dark:text-white"
+                    >Artist</label>
+                    <input
+                      type="text"
+                      name="artist"
+                      id="artist"
+                      value={song.artist || ""}
+                      class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      for="album"
+                      class="mb-2 block text-sm font-medium text-gray-900 dark:text-white"
+                    >Album</label>
+                    <input
+                      type="text"
+                      name="album"
+                      id="album"
+                      value={song.album || ""}
+                      class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                    />
+                  </div>
+                </div>
+                <div class="space-y-6">
+                  <div>
+                    <label
+                      for="category"
+                      class="mb-2 block text-sm font-medium text-gray-900 dark:text-white"
+                    >Category</label>
+                    <input
+                      type="text"
+                      name="category"
+                      id="category"
+                      value={song.category || ""}
+                      class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      for="key"
+                      class="mb-2 block text-sm font-medium text-gray-900 dark:text-white"
+                    >Key</label>
+                    <select
+                      name="key"
+                      id="key"
+                      class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                    >
+                      <option value="">Select Key</option>
+                      {musicalKeys.map((key) => (
+                        <option value={key} selected={song.key === key}>{key}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label
+                      for="primary_language"
+                      class="mb-2 block text-sm font-medium text-gray-900 dark:text-white"
+                    >Primary Language*</label>
+                    <select
+                      name="primary_language"
+                      id="primary_language"
+                      required
+                      class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                    >
+                      <option value="">Select Primary Language</option>
+                      {indianLanguages.map((lang) => (
+                        <option value={lang} selected={song.primary_language === lang}>{lang}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label
+                      class="mb-2 block text-sm font-medium text-gray-900 dark:text-white"
+                    >Secondary Languages</label>
+                    <div
+                      class="max-h-40 overflow-y-auto rounded-lg border border-gray-300 p-4 dark:border-gray-600 dark:bg-gray-700"
+                    >
+                      {indianLanguages.map((lang) => (
+                        <label class="mb-3 flex items-center space-x-3">
+                          <input
+                            type="checkbox"
+                            name="secondary_languages"
+                            value={lang}
+                            checked={song.secondary_languages?.split(",").includes(lang) || false}
+                            class="h-4 w-4 rounded border-gray-300 bg-gray-100 text-blue-600 focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:focus:ring-blue-600"
+                          />
+                          <span class="text-sm font-medium text-gray-900 dark:text-white">{lang}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <label
+                      for="tags"
+                      class="mb-2 block text-sm font-medium text-gray-900 dark:text-white"
+                    >Tags</label>
+                    <input
+                      type="text"
+                      name="tags"
+                      id="tags"
+                      value={song.tags || ""}
+                      class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      for="pub_date"
+                      class="mb-2 block text-sm font-medium text-gray-900 dark:text-white"
+                    >Publish Date</label>
+                    <input
+                      type="datetime-local"
+                      name="pub_date"
+                      id="pub_date"
+                      value={song.pub_date ? new Date(song.pub_date).toISOString().slice(0, 16) : ""}
+                      class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                    />
+                  </div>
+                </div>
+              </div>
+              <div>
+                <label
+                  for="lyrics"
+                  class="mb-2 block text-sm font-medium text-gray-900 dark:text-white"
+                >Lyrics*</label>
+                <textarea
+                  name="lyrics"
+                  id="lyrics"
+                  required
+                  rows="10"
+                  class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                >{song.lyrics || ""}</textarea>
+              </div>
+              <div>
+                <label
+                  for="chords"
+                  class="mb-2 block text-sm font-medium text-gray-900 dark:text-white"
+                >Chords</label>
+                <textarea
+                  name="chords"
+                  id="chords"
+                  rows="10"
+                  class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                >{song.chords || ""}</textarea>
+              </div>
+              <div>
+                <label
+                  for="description"
+                  class="mb-2 block text-sm font-medium text-gray-900 dark:text-white"
+                >Description</label>
+                <textarea
+                  name="description"
+                  id="description"
+                  rows="4"
+                  class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                >{song.description || ""}</textarea>
+              </div>
+              <div class="flex justify-center space-x-4">
+                <button
+                  type="submit"
+                  class="rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+                >
+                  Update Song
+                </button>
+                <a
+                  href="/admin/admin"
+                  class="rounded-lg bg-gray-500 px-5 py-2.5 text-sm font-medium text-white hover:bg-gray-600 focus:ring-4 focus:ring-gray-300 dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-800"
+                >
+                  Cancel
+                </a>
+              </div>
+            </form>
+          </>
+        ) : (
+          <div class="mb-4 rounded-lg bg-red-50 p-4 text-sm text-red-800 dark:bg-red-800 dark:text-red-400" role="alert">
+            <h2 class="text-lg font-bold">Error</h2>
+            <p>No song data available</p>
+            <div class="mt-4">
+              <a
+                href="/admin"
+                class="rounded-lg bg-gray-500 px-5 py-2.5 text-sm font-medium text-white hover:bg-gray-600 focus:ring-4 focus:ring-gray-300 dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-800"
+              >
+                Back to Admin Panel
+              </a>
+            </div>
+          </div>
+        )
+      }
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/flowbite@1.5.3/dist/flowbite.min.js"></script>
+  <script>
+    const titleInput = document.getElementById("title") as HTMLInputElement | null;
+    const urlInput = document.getElementById("url") as HTMLInputElement | null;
+    if (titleInput && urlInput) {
+      titleInput.addEventListener("input", () => {
+        const title = titleInput.value;
+        const generatedUrl = title
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/(^-|-$)/g, "");
+        urlInput.value = generatedUrl;
+      });
+    }
+  </script>
+</Layout>

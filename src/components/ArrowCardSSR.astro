@@ -3,15 +3,18 @@ const { lyricsTitle, discription, lyricsLink } = Astro.props;
 ---
 
 <a
-  href={lyricsLink} data-astro-reload
-  class="group relative flex items-center gap-4 rounded-2xl border border-black/10 bg-white/90 px-5 py-4 transition-all duration-300 hover:bg-black/5 hover:text-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black dark:border-white/20 dark:bg-white/5 dark:hover:bg-white/10 dark:hover:text-white dark:focus-visible:ring-white"
+  href={lyricsLink}
+  data-astro-reload
+  class="group relative flex items-center gap-4 rounded-2xl border border-black/10 bg-white/90 px-5 py-4 transition-all duration-300 hover:bg-black/5 hover:text-black focus-visible:ring-2 focus-visible:ring-black focus-visible:outline-none dark:border-white/20 dark:bg-white/5 dark:hover:bg-white/10 dark:hover:text-white dark:focus-visible:ring-white"
   data-astro-prefetch="hover"
 >
   <div class="flex flex-col overflow-hidden">
-    <h3 class="text-lg font-medium leading-tight text-black truncate dark:text-white">
+    <h3
+      class="truncate text-lg leading-tight font-medium text-black dark:text-white"
+    >
       {lyricsTitle}
     </h3>
-    <p class="mt-1 text-sm text-gray-600 dark:text-gray-300 truncate">
+    <p class="mt-1 truncate text-sm text-gray-600 dark:text-gray-300">
       {discription}
     </p>
   </div>
@@ -23,7 +26,7 @@ const { lyricsTitle, discription, lyricsLink } = Astro.props;
     aria-hidden="true"
     fill="none"
   >
-    <line x1="5" y1="12" x2="19" y2="12" />
-    <polyline points="12 5 19 12 12 19" />
+    <line x1="5" y1="12" x2="19" y2="12"></line>
+    <polyline points="12 5 19 12 12 19"></polyline>
   </svg>
 </a>
