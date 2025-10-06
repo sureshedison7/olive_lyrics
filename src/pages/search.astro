@@ -4,13 +4,13 @@ import Layout from "../layouts/Layout.astro";
 
 // Get search query from URL params
 const query = Astro.url.searchParams.get("q") || "";
-type Lyric = {
+type SongResult = {
   id: number;
   title: string;
-  content: string;
-  discription: string;
-  lurl: string;
-  published_at: string;
+  excerpt: string;
+  description: string;
+  url: string;
+  pub_date: string | null;
 };
 
 export const prerender = false;
@@ -21,36 +21,39 @@ interface Env {
   DB: D1Database;
 }
 
-let results: Lyric[] = [];
+let results: SongResult[] = [];
 
 if (query) {
   const db = Astro.locals.runtime.env.DB as D1Database;
-  const stmt = db
-    .prepare(
-      `
-    SELECT * FROM lyrics 
-    WHERE title LIKE ? OR content LIKE ? OR discription LIKE ?
-    ORDER BY published_at DESC
-  `,
-    )
-    .bind(`%${query}%`, `%${query}%`, `%${query}%`);
+  // Search across multiple columns in the songs table. Use bound parameters to avoid injection.
+  const sql = `
+    SELECT id, url, title, description, lyrics, chords, artist, album, tags, key, pub_date
+    FROM songs
+    WHERE title LIKE ?
+      OR lyrics LIKE ?
+      OR description LIKE ?
+      OR artist LIKE ?
+      OR album LIKE ?
+  OR tags LIKE ?
+  OR "key" LIKE ?
+      OR primary_language LIKE ?
+      OR secondary_languages LIKE ?
+    ORDER BY pub_date DESC
+  `;
 
-  const allResults = (await stmt.all()).results.map((row) => ({
+  const like = `%${query}%`;
+  const stmt = db.prepare(sql).bind(like, like, like, like, like, like, like, like, like);
+
+  const allResults = (await stmt.all()).results || [];
+
+  results = allResults.map((row) => ({
     id: Number(row.id),
-    title: String(row.title),
-    content: String(row.content),
-    discription: String(row.discription),
-    lurl: String(row.lurl),
-    published_at: String(row.published_at),
-  })) as Lyric[];
-
-  results = allResults.filter((lyric) => {
-    const fieldsToCheck = [lyric.title, lyric.content, lyric.discription];
-    const matches = fieldsToCheck.filter((field) =>
-      field.toLowerCase().includes(query.toLowerCase()),
-    ).length;
-    return matches >= 2;
-  });
+    title: String(row.title || ""),
+    excerpt: String((row.description || row.lyrics || "").toString()).slice(0, 300),
+    description: String(row.description || ""),
+    url: String(row.url || ""),
+    pub_date: row.pub_date ? String(row.pub_date) : null,
+  }));
 }
 ---
 
@@ -89,21 +92,23 @@ if (query) {
 
           {results.length > 0 ? (
             <ul class="space-y-4">
-              {results.map((lyric) => (
+              {results.map((song) => (
                 <li class="border-b pb-4">
                   <a
-                    href={"lyrics/" + lyric.lurl}
+                    href={"/lyrics/" + song.url}
                     class="block rounded p-2 hover:bg-gray-50"
                   >
                     <h3 class="text-lg font-medium text-blue-600">
-                      {lyric.title}
+                      {song.title}
                     </h3>
                     <p class="line-clamp-2 text-gray-600">
-                      {lyric.discription}
+                      {song.description || song.excerpt}
                     </p>
-                    <time class="text-sm text-gray-500">
-                      {new Date(lyric.published_at).toLocaleDateString()}
-                    </time>
+                    {song.pub_date && (
+                      <time class="text-sm text-gray-500">
+                        {new Date(song.pub_date).toLocaleDateString()}
+                      </time>
+                    )}
                   </a>
                 </li>
               ))}

@@ -189,8 +189,7 @@ try {
                 <span
                   id="transpose-value"
                   class="px-3 py-1 text-sm font-medium text-gray-700 dark:text-gray-300 border border-gray-300 rounded-md dark:border-gray-600 min-w-[2.5rem] text-center"
-                  >0</span
-                >
+                  >0</span>
 
                 <button
                   id="transpose-up"
@@ -218,14 +217,7 @@ try {
                   Reset
                 </button>
 
-                <!-- Sharp/Flat Toggle -->
-                 {/*<button
-                  id="toggle-mode"
-                  class="px-3 py-1 text-sm font-medium text-gray-600 border border-gray-300 rounded-md shadow-sm dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
-                  title="Toggle Sharp/Flat"
-                >
-                  <span id="mode-label">♭</span>
-                </button>*/}
+                <!-- Sharp/Flat toggle removed: chords recognize and preserve sharps/flats automatically -->
               </div>
             </div>
           </div>
@@ -412,84 +404,88 @@ try {
         return;
     }
 
-    const CHORD_NOTES_SHARP = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
-    const CHORD_NOTES_FLAT = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'];
+    // Canonical chromatic scale mapping (semitone index)
+    const SEMITONE_MAP = {
+      'C': 0, 'B#': 0,
+      'C#': 1, 'Db': 1,
+      'D': 2,
+      'D#': 3, 'Eb': 3,
+      'E': 4, 'Fb': 4,
+      'E#': 5, 'F': 5,
+      'F#': 6, 'Gb': 6,
+      'G': 7,
+      'G#': 8, 'Ab': 8,
+      'A': 9,
+      'A#': 10, 'Bb': 10,
+      'B': 11, 'Cb': 11
+    };
+
+    // Preferred render names for each semitone depending on requested accidental style
+    const PREFERRED = {
+      sharp: ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'],
+      flat:  ['C','Db','D','Eb','E','F','Gb','G','Ab','A','Bb','B']
+    };
 
     let currentTranspose = 0;
-    let currentMode = 'flat'; // Default to flat since input uses Ab, Eb, Db
 
-    // Updated regex to handle chords with extensions and slash chords
-    const chordRegex = /\*([A-G](?:#|b)?(?:maj|min|m|M|add|sus|dim|aug|7|maj7|min7|m7)?(?:\/[A-G](?:#|b)?(?:maj|min|m|M|7|maj7|min7|m7)?)?)\*/g;
-    
-    function detectChordNotation(chord) {
-      return chord.includes('b') ? 'flat' : 'sharp';
+    // Regex updated to handle chord extensions and slash chords
+    const chordRegex = /\*([A-G](?:#|b)?(?:[^\s\/*]*)?(?:\/[A-G](?:#|b)?(?:[^\s]*)?)?)\*/g;
+
+    function getSemitone(note) {
+      return SEMITONE_MAP[note] ?? null;
     }
 
-    function transposeChord(chord, steps, mode) {
+    function chooseRenderedName(semitone, preferFlat) {
+      return preferFlat ? PREFERRED.flat[semitone] : PREFERRED.sharp[semitone];
+    }
+
+    function transposeChord(chord, steps) {
       if (!chord || typeof steps !== 'number') return chord;
-      
-      const noteList = mode === 'sharp' ? CHORD_NOTES_SHARP : CHORD_NOTES_FLAT;
-      
-      // Split chord into root and bass note (if slash chord)
+
+      // Split chord into root and bass (if present)
       const slashIndex = chord.indexOf('/');
-      let root, bass, suffix = '';
-      
+      let root = chord;
+      let bass = null;
       if (slashIndex !== -1) {
         root = chord.substring(0, slashIndex);
         bass = chord.substring(slashIndex + 1);
-      } else {
-        root = chord;
       }
-      
-      // Extract root note and suffix
-      const rootMatch = root.match(/^[A-G](?:#|b)?/);
-      if (!rootMatch) {
-        console.warn(`Invalid root note in chord: ${chord}`);
-        return chord;
-      }
-      
-      const rootNote = rootMatch[0];
-      suffix = root.substring(rootNote.length);
-      
-      // Transpose root note
-      let rootIndex = noteList.indexOf(rootNote);
-      if (rootIndex === -1) {
-        console.warn(`Root note ${rootNote} not found in note list`);
-        return chord;
-      }
-      
-      let newRootIndex = (rootIndex + steps) % 12;
+
+      // Extract root note token and suffix
+      const rootMatch = root.match(/^([A-G](?:#|b)?)(.*)$/);
+      if (!rootMatch) return chord;
+      const rootNote = rootMatch[1];
+      const rootSuffix = rootMatch[2] || '';
+
+      const rootSemitone = getSemitone(rootNote);
+      if (rootSemitone === null) return chord;
+
+      let newRootIndex = (rootSemitone + steps) % 12;
       if (newRootIndex < 0) newRootIndex += 12;
-      const newRoot = noteList[newRootIndex];
-      
-      // Handle bass note for slash chords
+
+      // Preserve accidental style: if original had 'b' prefer flat, if '#' prefer sharp, otherwise keep natural preference
+      const preferFlatRoot = rootNote.includes('b');
+      const newRootName = chooseRenderedName(newRootIndex, preferFlatRoot);
+
+      // Handle bass if present
       if (bass) {
-        const bassMatch = bass.match(/^[A-G](?:#|b)?/);
-        if (!bassMatch) {
-          console.warn(`Invalid bass note in chord: ${chord}`);
-          return newRoot + suffix + '/' + bass;
-        }
-        
-        const bassNote = bassMatch[0];
-        const bassSuffix = bass.substring(bassNote.length);
-        
-        let bassIndex = noteList.indexOf(bassNote);
-        if (bassIndex === -1) {
-          console.warn(`Bass note ${bassNote} not found in note list`);
-          return newRoot + suffix + '/' + bass;
-        }
-        
-        let newBassIndex = (bassIndex + steps) % 12;
+        const bassMatch = bass.match(/^([A-G](?:#|b)?)(.*)$/);
+        if (!bassMatch) return `${newRootName}${rootSuffix}/${bass}`;
+        const bassNote = bassMatch[1];
+        const bassSuffix = bassMatch[2] || '';
+        const bassSemitone = getSemitone(bassNote);
+        if (bassSemitone === null) return `${newRootName}${rootSuffix}/${bass}`;
+        let newBassIndex = (bassSemitone + steps) % 12;
         if (newBassIndex < 0) newBassIndex += 12;
-        const newBassNote = noteList[newBassIndex];
-        
-        return `${newRoot}${suffix}/${newBassNote}${bassSuffix}`;
+        const preferFlatBass = bassNote.includes('b');
+        const newBassName = chooseRenderedName(newBassIndex, preferFlatBass);
+        return `${newRootName}${rootSuffix}/${newBassName}${bassSuffix}`;
       }
-      
-      return newRoot + suffix;
+
+      return `${newRootName}${rootSuffix}`;
     }
 
-    function processAndDisplaySong(transposeSteps = 0, mode = 'flat') {
+    function processAndDisplaySong(transposeSteps = 0) {
       if (!rawChordSheet) {
         processedChordsElement.textContent = "No chords found for this song.";
         return;
@@ -538,9 +534,7 @@ try {
               }
               
               const textAfter = line.substring(chordEnd, nextChordStart);
-              const chordNotation = detectChordNotation(chord);
-              const effectiveMode = mode === 'auto' ? chordNotation : mode;
-              const transposedChord = transposeChord(chord, transposeSteps, effectiveMode);
+              const transposedChord = transposeChord(chord, transposeSteps);
               
               lineHtml += `<span class="chord-word"><span class="chord-label"><div class="chord-text">${transposedChord}</div></span><span class="lyric-word">${textAfter}</span></span>`;
               
@@ -571,8 +565,7 @@ try {
     const transposeDownBtn = document.getElementById("transpose-down");
     const transposeResetBtn = document.getElementById("transpose-reset");
     const transposeValue = document.getElementById("transpose-value");
-    const toggleModeBtn = document.getElementById("toggle-mode");
-    const modeLabel = document.getElementById("mode-label");
+  // Toggle removed: chords detect and preserve accidental style automatically
 
     const initialFontSize = 1.15;
     let currentFontSize = initialFontSize;
@@ -611,7 +604,7 @@ try {
       transposeUpBtn.addEventListener("click", () => {
         currentTranspose += 1;
         transposeValue.textContent = currentTranspose > 0 ? `+${currentTranspose}` : currentTranspose.toString();
-        processAndDisplaySong(currentTranspose, currentMode);
+        processAndDisplaySong(currentTranspose);
       });
     }
 
@@ -619,7 +612,7 @@ try {
       transposeDownBtn.addEventListener("click", () => {
         currentTranspose -= 1;
         transposeValue.textContent = currentTranspose > 0 ? `+${currentTranspose}` : currentTranspose.toString();
-        processAndDisplaySong(currentTranspose, currentMode);
+        processAndDisplaySong(currentTranspose);
       });
     }
 
@@ -627,20 +620,11 @@ try {
       transposeResetBtn.addEventListener("click", () => {
         currentTranspose = 0;
         transposeValue.textContent = currentTranspose.toString();
-        processAndDisplaySong(currentTranspose, currentMode);
+        processAndDisplaySong(currentTranspose);
       });
     }
 
-    if (toggleModeBtn && modeLabel) {
-      toggleModeBtn.addEventListener("click", () => {
-        currentMode = currentMode === 'sharp' ? 'flat' : 'sharp';
-        modeLabel.textContent = currentMode === 'sharp' ? '♯' : '♭';
-        console.log(`Mode switched to: ${currentMode}`);
-        processAndDisplaySong(currentTranspose, currentMode);
-      });
-    }
-    
     // Initialize display
-    processAndDisplaySong(0, currentMode);
+    processAndDisplaySong(0);
   });
 </script>
