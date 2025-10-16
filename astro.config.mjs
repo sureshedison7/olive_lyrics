@@ -9,7 +9,7 @@ import react from "@astrojs/react";
 
 // https://astro.build/config
 export default defineConfig({
-  site: "https://astro-micro.vercel.app",
+  site: "https://my-doc.sureshedison77.workers.dev",
   integrations: [sitemap(), mdx(), react()],
   vite: {
     resolve: {

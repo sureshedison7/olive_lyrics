@@ -1,0 +1,48 @@
+---
+import Layout from "@layouts/Layout.astro";
+import Container from "@components/Container.astro";
+import Link from "@components/Link.astro";
+---
+
+<Layout title="Sitemap - Olive Lyrics" description="Complete sitemap of Olive Lyrics website">
+  <Container>
+    <div class="animate">
+      <h1 class="mb-8 text-3xl font-bold">Site Map</h1>
+      
+      <div class="grid gap-8 md:grid-cols-2">
+        <!-- Main Pages -->
+        <section>
+          <h2 class="mb-4 text-xl font-semibold text-primary-600">Main Pages</h2>
+          <ul class="space-y-2">
+            <li><Link href="/">🏠 Home</Link></li>
+            <li><Link href="/lyrics">🎵 All Lyrics</Link></li>
+            <li><Link href="/chords">🎸 All Chords</Link></li>
+            <li><Link href="/search">🔍 Search</Link></li>
+          </ul>
+        </section>
+
+        <!-- Categories -->
+        <section>
+          <h2 class="mb-4 text-xl font-semibold text-primary-600">Categories</h2>
+          <ul class="space-y-2">
+            <li><Link href="/category/worship">✋ Worship</Link></li>
+            <li><Link href="/category/praise">🙌 Praise</Link></li>
+            <li><Link href="/category/christmas">🎄 Christmas</Link></li>
+            <li><Link href="/category/gospel">📖 Gospel</Link></li>
+            <li><Link href="/category/tamil">🇮🇳 Tamil</Link></li>
+            <li><Link href="/category/english">🇺🇸 English</Link></li>
+          </ul>
+        </section>
+
+        <!-- Resources -->
+        <section>
+          <h2 class="mb-4 text-xl font-semibent text-primary-600">Resources</h2>
+          <ul class="space-y-2">
+            <li><Link href="/rss.xml">📡 RSS Feed</Link></li>
+            <li><Link href="/sitemap.xml">🗺️ XML Sitemap</Link></li>
+          </ul>
+        </section>
+      </div>
+    </div>
+  </Container>
+</Layout>

@@ -41,6 +41,9 @@ const { title, description, image = "/astro-micro.jpg" } = Astro.props;
   href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔬</text></svg>"
 />
 <meta name="generator" content={Astro.generator} />
+<meta name="keywords" content="worship lyrics, christian songs, church music, praise songs, gospel lyrics, worship chords, hymns, contemporary christian music" />
+<meta name="author" content="Olive Lyrics" />
+<meta name="robots" content="index, follow" />
 
 <!-- Canonical URL -->
 <link rel="canonical" href={canonicalURL} />
@@ -63,6 +66,32 @@ const { title, description, image = "/astro-micro.jpg" } = Astro.props;
 <meta property="twitter:title" content={title} />
 <meta property="twitter:description" content={description} />
 <meta property="twitter:image" content={new URL(image, Astro.url)} />
+
+<!-- Schema.org JSON-LD -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "Olive Lyrics",
+  "description": "Christian worship lyrics and chords collection for musicians and worship leaders",
+  "url": "https://my-doc.sureshedison77.workers.dev",
+  "potentialAction": {
+    "@type": "SearchAction",
+    "target": "https://my-doc.sureshedison77.workers.dev/search?q={search_term_string}",
+    "query-input": "required name=search_term_string"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Olive Lyrics",
+    "url": "https://my-doc.sureshedison77.workers.dev"
+  },
+  "mainEntity": {
+    "@type": "MusicGroup",
+    "name": "Christian Worship Songs",
+    "genre": ["Christian", "Worship", "Gospel", "Praise"]
+  }
+}
+</script>
 
 <ClientRouter />
 
