@@ -1,0 +1,89 @@
+---
+interface Props {
+  title: string;
+  artist: string;
+  album?: string;
+  lyrics: string;
+  url: string;
+  pubDate?: string;
+  description?: string;
+}
+
+const { title, artist, album, lyrics, url, pubDate, description } = Astro.props;
+const canonicalURL = new URL(Astro.url.pathname, Astro.site);
+const siteUrl = "https://my-doc.sureshedison77.workers.dev";
+---
+
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "MusicComposition",
+  "name": title,
+  "composer": {
+    "@type": "Person",
+    "name": artist
+  },
+  "lyricist": {
+    "@type": "Person", 
+    "name": artist
+  },
+  "lyrics": {
+    "@type": "CreativeWork",
+    "text": lyrics,
+    "inLanguage": "en-US"
+  },
+  "genre": ["Christian", "Worship", "Gospel"],
+  "url": canonicalURL.toString(),
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "url": canonicalURL.toString(),
+    "name": `${title} - ${artist} | Olive Lyrics`,
+    "description": description || `Worship lyrics and chords for ${title} by ${artist}`,
+    "inLanguage": "en-US",
+    "isPartOf": {
+      "@type": "WebSite",
+      "name": "Olive Lyrics",
+      "url": siteUrl
+    },
+    "breadcrumb": {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": siteUrl
+        },
+        {
+          "@type": "ListItem", 
+          "position": 2,
+          "name": "Lyrics",
+          "item": `${siteUrl}/lyrics`
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": title,
+          "item": canonicalURL.toString()
+        }
+      ]
+    } 
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Olive Lyrics",
+    "url": siteUrl,
+    "logo": {
+      "@type": "ImageObject",
+      "url": `${siteUrl}/favicon.svg`
+    }
+  },
+  "audience": {
+    "@type": "Audience",
+    "audienceType": ["Musicians", "Worship Leaders", "Church Musicians", "Christians"]
+  },
+  "about": {
+    "@type": "Thing",
+    "name": "Christian Worship Music"
+  }
+})}>
+</script>

@@ -3,6 +3,7 @@ export const prerender = false;
 import Layout from "@layouts/Layout.astro";
 import Container from "@components/Container.astro";
 import FormattedDate from "@components/FormattedDate.astro";
+import SongSchema from "@components/SongSchema.astro";
 import { BLOG } from "@consts";
 import type { LyricsTypes } from "@types";
 
@@ -31,6 +32,17 @@ try {
   title={`${lyricsArticle?.title || "Lyrics"} - ${lyricsArticle?.artist || ""}`}
   description={lyricsArticle?.description || BLOG.DESCRIPTION}
 >
+  {lyricsArticle && (
+    <SongSchema
+      title={lyricsArticle.title}
+      artist={lyricsArticle.artist}
+      album={lyricsArticle.album}
+      lyrics={lyricsArticle.chords || lyricsArticle.lyrics}
+      url={lyricsArticle.url}
+      pubDate={lyricsArticle.pub_date}
+      description={lyricsArticle.description}
+    />
+  )} 
   <Container>
     <!-- Tab Navigation -->
     <div class="flex w-full bg-gray-100 rounded-lg p-1.5 border border-gray-200 shadow-sm dark:bg-gray-800 dark:border-gray-700 mb-6">

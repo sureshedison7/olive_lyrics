@@ -1,0 +1,91 @@
+---
+interface Props {
+  title: string;
+  artist?: string;
+  lyrics?: string;
+  chords?: string;
+  category?: string;
+  url: string;
+  publishDate?: string;
+}
+
+const { title, artist, lyrics, chords, category, url, publishDate } = Astro.props;
+const siteUrl = "https://my-doc.sureshedison77.workers.dev";
+const fullUrl = `${siteUrl}/lyrics/${url}`;
+const chordsUrl = `${siteUrl}/chords/${url}`;
+---
+
+<!-- Song-specific structured data -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "MusicComposition",
+  "name": {title},
+  "url": {fullUrl},
+  "genre": ["Christian", "Worship", "Gospel", category].filter(Boolean),
+  "inLanguage": "en-US",
+  "datePublished": {publishDate || new Date().toISOString()},
+  "publisher": {
+    "@type": "Organization",
+    "name": "Olive Lyrics",
+    "url": {siteUrl}
+  },
+  "mainEntity": {
+    "@type": "CreativeWork",
+    "name": {title},
+    "text": {lyrics ? lyrics.substring(0, 200) + "..." : "Christian worship song lyrics"},
+    "genre": "Christian Worship",
+    "audience": {
+      "@type": "Audience",
+      "audienceType": ["Musicians", "Worship Leaders", "Church Musicians"]
+    }
+  },
+  "associatedMedia": [
+    {
+      "@type": "WebPage",
+      "name": `${title} - Lyrics`,
+      "url": {fullUrl},
+      "description": `Christian worship song lyrics for ${title}`
+    },
+    {
+      "@type": "WebPage", 
+      "name": `${title} - Chords`,
+      "url": {chordsUrl},
+      "description": `Guitar chords and music notation for ${title}`
+    }
+  ],
+  "breadcrumb": {
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Home",
+        "item": {siteUrl}
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Lyrics",
+        "item": `${siteUrl}/lyrics`
+      },
+      {
+        "@type": "ListItem",
+        "position": 3,
+        "name": {title},
+        "item": {fullUrl}
+      }
+    ]
+  }
+}
+</script>
+
+<!-- Additional meta tags for songs -->
+<meta property="music:song" content={title} />
+<meta property="music:musician" content={artist || "Various Artists"} />
+<meta property="article:section" content="Christian Worship" />
+<meta property="article:tag" content="worship lyrics" />
+<meta property="article:tag" content="christian songs" />
+<meta property="article:tag" content="church music" />
+{category && <meta property="article:tag" content={category} />}
+{publishDate && <meta property="article:published_time" content={publishDate} />}

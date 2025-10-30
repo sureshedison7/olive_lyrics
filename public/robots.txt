@@ -1,7 +1,19 @@
 User-agent: *
 Allow: /
+Crawl-delay: 1
 
+# Block admin and API endpoints
 Disallow: /admin/
 Disallow: /api/
+Disallow: /_astro/
+Disallow: /404
 
+# Allow important pages
+Allow: /lyrics/
+Allow: /chords/
+Allow: /search
+Allow: /rss.xml
+
+# Sitemaps
 Sitemap: https://my-doc.sureshedison77.workers.dev/sitemap.xml
+Sitemap: https://my-doc.sureshedison77.workers.dev/rss.xml

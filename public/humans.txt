@@ -1,0 +1,28 @@
+# humanstxt.org/
+# The humans responsible & technology colophon
+
+# TEAM
+
+    Developer: Edison
+    Contact: sureshedison77@gmail.com
+    Location: India
+
+# THANKS
+
+    Christian worship community
+    Musicians and worship leaders worldwide
+
+# TECHNOLOGY COLOPHON
+
+    HTML5, CSS3, JavaScript
+    Astro.js
+    Tailwind CSS
+    Cloudflare Workers
+    SQLite Database
+
+# SITE
+
+    Last update: 2024/01/01
+    Language: English / Tamil
+    Doctype: HTML5
+    IDE: VS Code

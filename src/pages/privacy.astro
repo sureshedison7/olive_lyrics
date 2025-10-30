@@ -1,0 +1,47 @@
+---
+import Layout from "@layouts/Layout.astro";
+import Container from "@components/Container.astro";
+---
+
+<Layout title="Privacy Policy - Olive Lyrics" description="Privacy Policy for Olive Lyrics website">
+  <Container>
+    <div class="animate space-y-6">
+      <h1 class="text-3xl font-bold">Privacy Policy</h1>
+      
+      <div class="prose dark:prose-invert max-w-none text-sm">
+        <p><strong>Last updated:</strong> {new Date().toLocaleDateString()}</p>
+
+        <h2>Information We Collect</h2>
+        <p>We collect minimal information to provide our services:</p>
+        <ul>
+          <li>Usage data (pages visited, search queries)</li>
+          <li>Technical information (browser type, device type)</li>
+          <li>No personal information is collected without consent</li>
+        </ul>
+
+        <h2>How We Use Information</h2>
+        <ul>
+          <li>To improve our website and services</li>
+          <li>To understand user preferences</li>
+          <li>To maintain website security</li>
+        </ul>
+
+        <h2>Cookies</h2>
+        <p>We use essential cookies for:</p>
+        <ul>
+          <li>Theme preferences (dark/light mode)</li>
+          <li>Basic website functionality</li>
+        </ul>
+
+        <h2>Third-Party Services</h2>
+        <p>We may use analytics services to understand website usage. These services have their own privacy policies.</p>
+
+        <h2>Data Security</h2>
+        <p>We implement appropriate security measures to protect any information we collect.</p>
+
+        <h2>Contact</h2>
+        <p>For privacy concerns, contact us at <a href="mailto:sureshedison77@gmail.com" class="text-blue-600 hover:underline">sureshedison77@gmail.com</a></p>
+      </div>
+    </div>
+  </Container>
+</Layout>

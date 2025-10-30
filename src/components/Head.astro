@@ -41,12 +41,23 @@ const { title, description, image = "/astro-micro.jpg" } = Astro.props;
   href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔬</text></svg>"
 />
 <meta name="generator" content={Astro.generator} />
-<meta name="keywords" content="worship lyrics, christian songs, church music, praise songs, gospel lyrics, worship chords, hymns, contemporary christian music" />
+<meta name="keywords" content="worship lyrics, christian songs, church music, praise songs, gospel lyrics, worship chords, hymns, contemporary christian music, tamil christian songs, english worship songs" />
 <meta name="author" content="Olive Lyrics" />
-<meta name="robots" content="index, follow" />
+<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+<meta name="googlebot" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+<meta name="bingbot" content="index, follow" />
+<meta name="language" content="English" />
+<meta name="revisit-after" content="7 days" />
+<meta name="distribution" content="global" />
+<meta name="rating" content="general" />
 
 <!-- Canonical URL -->
 <link rel="canonical" href={canonicalURL} />
+
+<!-- Additional crawler-friendly links -->
+<link rel="alternate" type="application/rss+xml" title="Olive Lyrics RSS Feed" href="/rss.xml" />
+<link rel="sitemap" type="application/xml" href="/sitemap.xml" />
+<link rel="author" href="/humans.txt" />
 
 <!-- Primary Meta Tags -->
 <title>{title}</title>
@@ -71,24 +82,63 @@ const { title, description, image = "/astro-micro.jpg" } = Astro.props;
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
-  "@type": "WebSite",
+  "@type": ["WebSite", "MusicGroup"],
   "name": "Olive Lyrics",
+  "alternateName": "Olive Lyrics - Christian Worship Collection",
   "description": "Christian worship lyrics and chords collection for musicians and worship leaders",
   "url": "https://my-doc.sureshedison77.workers.dev",
+  "inLanguage": ["en-US", "ta-IN"],
+  "genre": ["Christian", "Worship", "Gospel", "Praise", "Contemporary Christian Music", "Hymns"],
+  "keywords": "worship lyrics, christian songs, church music, praise songs, gospel lyrics, worship chords, hymns, contemporary christian music, tamil christian songs",
   "potentialAction": {
     "@type": "SearchAction",
-    "target": "https://my-doc.sureshedison77.workers.dev/search?q={search_term_string}",
+    "target": {
+      "@type": "EntryPoint",
+      "urlTemplate": "https://my-doc.sureshedison77.workers.dev/search?q={search_term_string}"
+    },
     "query-input": "required name=search_term_string"
   },
   "publisher": {
     "@type": "Organization",
     "name": "Olive Lyrics",
-    "url": "https://my-doc.sureshedison77.workers.dev"
+    "url": "https://my-doc.sureshedison77.workers.dev",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://my-doc.sureshedison77.workers.dev/favicon.svg",
+      "width": 512,
+      "height": 512
+    },
+    "sameAs": [
+      "https://my-doc.sureshedison77.workers.dev"
+    ]
   },
   "mainEntity": {
-    "@type": "MusicGroup",
-    "name": "Christian Worship Songs",
-    "genre": ["Christian", "Worship", "Gospel", "Praise"]
+    "@type": "CollectionPage",
+    "name": "Christian Worship Songs Collection",
+    "description": "Comprehensive collection of Christian worship lyrics and chords",
+    "genre": ["Christian", "Worship", "Gospel", "Praise", "Contemporary Christian Music"],
+    "audience": {
+      "@type": "Audience",
+      "audienceType": ["Musicians", "Worship Leaders", "Church Musicians", "Christians"]
+    },
+    "numberOfItems": "500+",
+    "collectionSize": "Large"
+  },
+  "about": {
+    "@type": "Thing",
+    "name": "Christian Worship Music",
+    "description": "Collection of worship songs for Christian congregations and musicians"
+  },
+  "breadcrumb": {
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Home",
+        "item": "https://my-doc.sureshedison77.workers.dev"
+      }
+    ]
   }
 }
 </script>

@@ -1,0 +1,69 @@
+---
+interface Props {
+  title: string;
+  description: string;
+  type: 'lyrics' | 'chords';
+  totalItems?: number;
+}
+
+const { title, description, type, totalItems } = Astro.props;
+const canonicalURL = new URL(Astro.url.pathname, Astro.site);
+const siteUrl = "https://my-doc.sureshedison77.workers.dev";
+---
+
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  "name": title,
+  "description": description,
+  "url": canonicalURL.toString(),
+  "inLanguage": "en-US",
+  "isPartOf": {
+    "@type": "WebSite",
+    "name": "Olive Lyrics",
+    "url": siteUrl
+  },
+  "breadcrumb": {
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Home",
+        "item": siteUrl
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": type === 'lyrics' ? 'Lyrics' : 'Chords',
+        "item": canonicalURL.toString()
+      }
+    ]
+  },
+  "mainEntity": {
+    "@type": "ItemList",
+    "name": `Christian Worship ${type === 'lyrics' ? 'Lyrics' : 'Chords'} Collection`,
+    "description": `Collection of Christian worship ${type} for musicians and worship leaders`,
+    "numberOfItems": totalItems
+  },
+  "about": {
+    "@type": "Thing",
+    "name": "Christian Worship Music",
+    "description": `Collection of worship ${type} for Christian congregations and musicians`
+  },
+  "audience": {
+    "@type": "Audience",
+    "audienceType": ["Musicians", "Worship Leaders", "Church Musicians", "Christians"]
+  },
+  "genre": ["Christian", "Worship", "Gospel", "Praise", "Contemporary Christian Music"],
+  "publisher": {
+    "@type": "Organization",
+    "name": "Olive Lyrics",
+    "url": siteUrl,
+    "logo": {
+      "@type": "ImageObject",
+      "url": `${siteUrl}/favicon.svg`
+    }
+  }
+})}>
+</script>
